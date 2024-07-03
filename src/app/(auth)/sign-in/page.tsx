@@ -2,6 +2,7 @@ import { getProviders } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 
+import { Suspense } from "react";
 import ProviderSignInButton from "./_components/ProviderSignInButton";
 
 export default async function SignIn() {
@@ -17,18 +18,20 @@ export default async function SignIn() {
               Sign In to Artisanal Futures
             </h1>
             <div className="flex flex-col gap-y-2">
-              {providers &&
-                Object.values(providers).map((provider) => {
-                  if (provider.name !== "Auth0") {
-                    return (
-                      <ProviderSignInButton
-                        id={provider.id}
-                        name={provider.name}
-                        key={provider.name}
-                      />
-                    );
-                  }
-                })}
+              <Suspense fallback={<div>Loading...</div>}>
+                {providers &&
+                  Object.values(providers).map((provider) => {
+                    if (provider.name !== "Auth0") {
+                      return (
+                        <ProviderSignInButton
+                          id={provider.id}
+                          name={provider.name}
+                          key={provider.name}
+                        />
+                      );
+                    }
+                  })}
+              </Suspense>
 
               <div className="my-3 flex items-center px-3">
                 <hr className="w-full border-slate-600" />
