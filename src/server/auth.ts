@@ -1,13 +1,19 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { PrismaAdapter } from "@auth/prisma-adapter";
+import { type Role } from "@prisma/client";
+import { type GetServerSidePropsContext } from "next";
 import {
   getServerSession,
   type DefaultSession,
   type NextAuthOptions,
 } from "next-auth";
 import { type Adapter } from "next-auth/adapters";
+import Auth0Provider from "next-auth/providers/auth0";
 import DiscordProvider from "next-auth/providers/discord";
+import GoogleProvider from "next-auth/providers/google";
 
 import { env } from "~/env";
+import { redirect } from "~/lib/auth";
 import { db } from "~/server/db";
 
 /**
@@ -21,14 +27,14 @@ declare module "next-auth" {
     user: {
       id: string;
       // ...other properties
-      // role: UserRole;
+      role: Role;
     } & DefaultSession["user"];
   }
 
-  // interface User {
-  //   // ...other properties
-  //   // role: UserRole;
-  // }
+  interface User {
+    // ...other properties
+    role: Role;
+  }
 }
 
 /**
@@ -43,8 +49,25 @@ export const authOptions: NextAuthOptions = {
       user: {
         ...session.user,
         id: user.id,
+        role: user.role,
       },
     }),
+
+    async signIn(props) {
+      const { user } = props;
+
+      // No account, tries to sign in
+      const authUser = await db.user.findUnique({
+        where: { id: user.id },
+      });
+
+      if (!authUser) {
+        return "/sign-in?error=account-not-found";
+      }
+
+      return true;
+    },
+    redirect,
   },
   adapter: PrismaAdapter(db) as Adapter,
   providers: [
@@ -52,6 +75,22 @@ export const authOptions: NextAuthOptions = {
       clientId: env.DISCORD_CLIENT_ID,
       clientSecret: env.DISCORD_CLIENT_SECRET,
     }),
+
+    GoogleProvider({
+      clientId: env.GOOGLE_CLIENT_ID,
+      clientSecret: env.GOOGLE_CLIENT_SECRET,
+    }),
+    Auth0Provider({
+      clientId: env.AUTH0_CLIENT_ID,
+      clientSecret: env.AUTH0_CLIENT_SECRET,
+      issuer: env.AUTH0_ISSUER,
+      authorization: {
+        params: {
+          prompt: "login",
+        },
+      },
+    }),
+
     /**
      * ...add more providers here.
      *
@@ -62,6 +101,9 @@ export const authOptions: NextAuthOptions = {
      * @see https://next-auth.js.org/providers/github
      */
   ],
+  pages: {
+    signIn: "/sign-in",
+  },
 };
 
 /**
