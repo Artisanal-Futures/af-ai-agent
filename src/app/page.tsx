@@ -1,82 +1,94 @@
-import Link from "next/link";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card"
+import { Label } from "~/components/ui/label"
+import { Input } from "~/components/ui/input"
+import { Button } from "~/components/ui/button"
 
-import { CreatePost } from "~/app/_components/create-post";
-import { getServerAuthSession } from "~/server/auth";
-import { api } from "~/trpc/server";
+// TO DO:
+// - change htmlFor and values to not be password etc related
+// - create variations page
+// - survey and survey button 
+// - UI points 8 and 9
 
-export default async function Home() {
-  const hello = await api.post.hello({ text: "from tRPC" });
-  const session = await getServerAuthSession();
-
+export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
-      <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
-        <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
-          Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
-        </h1>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
-          <Link
-            className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
-            href="https://create.t3.gg/en/usage/first-steps"
-            target="_blank"
-          >
-            <h3 className="text-2xl font-bold">First Steps →</h3>
-            <div className="text-lg">
-              Just the basics - Everything you need to know to set up your
-              database and authentication.
-            </div>
-          </Link>
-          <Link
-            className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
-            href="https://create.t3.gg/en/introduction"
-            target="_blank"
-          >
-            <h3 className="text-2xl font-bold">Documentation →</h3>
-            <div className="text-lg">
-              Learn more about Create T3 App, the libraries it uses, and how to
-              deploy it.
-            </div>
-          </Link>
-        </div>
-        <div className="flex flex-col items-center gap-2">
-          <p className="text-2xl text-white">
-            {hello ? hello.greeting : "Loading tRPC query..."}
-          </p>
+    <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#ffffff] to-[#e5e7eb] text-black">
+      <h1 className="text-5xl font-bold mb-8">Stable Diffusion AI Agent</h1>
+      <div className="container flex flex-col items-center justify-center gap-12 px-4 py-12">
 
-          <div className="flex flex-col items-center justify-center gap-4">
-            <p className="text-center text-2xl text-white">
-              {session && <span>Logged in as {session.user?.name}</span>}
-            </p>
-            <Link
-              href={session ? "/api/auth/signout" : "/api/auth/signin"}
-              className="rounded-full bg-white/10 px-10 py-3 font-semibold no-underline transition hover:bg-white/20"
-            >
-              {session ? "Sign out" : "Sign in"}
-            </Link>
-          </div>
-        </div>
-
-        <CrudShowcase />
+        <Tabs defaultValue="account" className="w-[80%] h-[auto]">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="account">Generate Image</TabsTrigger>
+            <TabsTrigger value="password">Create Variations</TabsTrigger>
+          </TabsList>
+          <TabsContent value="account">
+            <Card>
+              <CardContent className="grid grid-cols-2 gap-4">
+                {/* Left Column */}
+                <div className="col-span-1 space-y-2">
+                  <CardHeader>
+                    <CardTitle className="text-2xl">Generate Image</CardTitle>
+                    <CardDescription className="text-lg">
+                      Enter your project name and image prompt to generate AI images.
+                    </CardDescription>
+                  </CardHeader>
+                  <div className="space-y-1 ml-6">
+                    <Label htmlFor="name" className="text-base">Project Name</Label>
+                    <Input id="name" className="italic text-gray-500 font-light text-base" defaultValue="Jacket Design Ideas" />
+                  </div>
+                  <div className="space-y-1 ml-6">
+                    <Label htmlFor="username" className="text-base">Prompt</Label>
+                    <Input id="username" className="italic text-gray-500 font-light text-base" defaultValue="An image of a denim jacket with floral embroidery" />
+                  </div>
+                  <CardFooter className="">
+                    <Button className="text-base mt-3">Generate Image</Button>
+                  </CardFooter>
+                </div>
+                {/* Right Column */}
+                <div className="col-span-1 space-y-3 flex flex-col items-center justify-center">
+                  <div className="w-64 h-64 bg-gray-200 flex items-center justify-center mt-3">
+                    <span className="text-lg font-bold">Generated Image</span>
+                  </div>
+                  <p className="text-lg text-center mt-2">Placeholder for generated image</p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          <TabsContent value="password">
+            <Card>
+              <CardContent className="grid grid-cols-2 gap-4">
+                {/* Left Column */}
+                <div className="col-span-1 space-y-2">
+                  <CardHeader>
+                    <CardTitle className="text-2xl">Create Image Variations</CardTitle>
+                    <CardDescription className="text-lg">
+                      Enter your project name and image prompt to generate AI images.
+                    </CardDescription>
+                  </CardHeader>
+                  <div className="space-y-1 ml-6">
+                    <Label htmlFor="name" className="text-base">Project Name</Label>
+                    <Input id="name" className="italic text-gray-500 font-light text-base" defaultValue="Jacket Design Ideas" />
+                  </div>
+                  <div className="space-y-1 ml-6">
+                    <Label htmlFor="username" className="text-base">Prompt</Label>
+                    <Input id="username" className="italic text-gray-500 font-light text-base" defaultValue="An image of a denim jacket with floral embroidery" />
+                  </div>
+                  <CardFooter className="">
+                    <Button className="text-base mt-3">Generate Image</Button>
+                  </CardFooter>
+                </div>
+                {/* Right Column */}
+                <div className="col-span-1 space-y-3 flex flex-col items-center justify-center">
+                  <div className="w-64 h-64 bg-gray-200 flex items-center justify-center mt-3">
+                    <span className="text-lg font-bold">Generated Image</span>
+                  </div>
+                  <p className="text-lg text-center mt-2">Placeholder for generated image</p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </main>
-  );
-}
-
-async function CrudShowcase() {
-  const session = await getServerAuthSession();
-  if (!session?.user) return null;
-
-  const latestPost = await api.post.getLatest();
-
-  return (
-    <div className="w-full max-w-xs">
-      {latestPost ? (
-        <p className="truncate">Your most recent post: {latestPost.name}</p>
-      ) : (
-        <p>You have no posts yet.</p>
-      )}
-
-      <CreatePost />
-    </div>
   );
 }
