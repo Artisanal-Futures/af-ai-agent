@@ -67,6 +67,7 @@ model variation {
     userId                      String
     project_title               String
     image_url                   String
+    exceution_time              String
     createdBy   User   @relation(fields: [createdById], references: [id])
     createdById String
     user                   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -80,6 +81,7 @@ model Modification {
     guidance_scale              String
     prompt                      String
     negative_prompt             String
+    exceution_time              String
     createdBy   User   @relation(fields: [createdById], references: [id])
     createdById String
     user                   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -91,6 +93,5 @@ model VerificationToken {
     identifier String
     token      String   @unique
     expires    DateTime
-
     @@unique([identifier, token])
 }
