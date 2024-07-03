@@ -1,5 +1,12 @@
+//
+// This is AF agent schema database using the mysql database
+//
+
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+//
+// Prisma database schema for the AI agent
 
 generator client {
     provider = "prisma-client-js"
@@ -14,38 +21,26 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model Post {
-    id        Int      @id @default(autoincrement())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+//User Model
+model User {
+    id   Int      @id @default(autoincrement())
+    user_name     String?
+    @@unique([user_name])
+}
 
+// Generated Images
+model generated_images {
+    id                        String  @id @default(cuid())
+    userId                    String
+    project_title             String
+    prompt                    String
+    image_url                 String
     createdBy   User   @relation(fields: [createdById], references: [id])
     createdById String
-
-    @@index([name])
+    user                      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// Necessary for Next auth
-model Account {
-    id                       String  @id @default(cuid())
-    userId                   String
-    type                     String
-    provider                 String
-    providerAccountId        String
-    refresh_token            String? @db.Text
-    access_token             String? // @db.Text
-    expires_at               Int?
-    token_type               String?
-    scope                    String?
-    id_token                 String? // @db.Text
-    session_state            String?
-    user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-    refresh_token_expires_in Int?
-
-    @@unique([provider, providerAccountId])
-}
-
+// session Model
 model Session {
     id           String   @id @default(cuid())
     sessionToken String   @unique
@@ -54,16 +49,43 @@ model Session {
     user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model User {
-    id            String    @id @default(cuid())
-    name          String?
-    email         String?   @unique
-    emailVerified DateTime?
-    image         String?
-    accounts      Account[]
-    sessions      Session[]
-    posts         Post[]
+// survey Model
+model survey {
+    id                          String  @id @default(cuid())
+    userId                      String
+    project_title               String
+    level_of_statisfaction      String
+    direct_digital_fabrication  String
+    createdBy   User   @relation(fields: [createdById], references: [id])
+    createdById String
+    user                   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+
+// variation Model
+model variation {
+    id                          String  @id @default(cuid())
+    userId                      String
+    project_title               String
+    image_url                   String
+    createdBy   User   @relation(fields: [createdById], references: [id])
+    createdById String
+    user                   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Modification Model
+model Modification {
+    id                          String  @id @default(cuid())
+    userId                      String
+    project_title               String
+    guidance_scale              String
+    prompt                      String
+    negative_prompt             String
+    createdBy   User   @relation(fields: [createdById], references: [id])
+    createdById String
+    user                   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+
 
 model VerificationToken {
     identifier String
