@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { z } from "zod";
 
 import {
@@ -15,27 +19,12 @@ export const postRouter = createTRPCRouter({
       };
     }),
 
-  create: protectedProcedure
-    .input(z.object({ name: z.string().min(1) }))
-    .mutation(async ({ ctx, input }) => {
-      // simulate a slow db call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      return ctx.db.post.create({
-        data: {
-          title: input.name,
-          author: { connect: { id: ctx.session.user.id } },
-          content: "",
-          contentHtml: "",
-        },
-      });
-    }),
-
-  getLatest: protectedProcedure.query(({ ctx }) => {
-    return ctx.db.post.findFirst({
-      orderBy: { createdAt: "desc" },
-      where: { author: { id: ctx.session.user.id } },
-    });
+  getLatest: protectedProcedure.query(async ({ ctx }) => {
+    const shop = await ctx.db.shop.findFirst();
+    if (!shop) {
+      throw new Error("No shop found");
+    }
+    return shop;
   }),
 
   getSecretMessage: protectedProcedure.query(() => {

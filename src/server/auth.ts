@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { type Role } from "@prisma/client";
-import { type GetServerSidePropsContext } from "next";
+
 import {
   getServerSession,
   type DefaultSession,
@@ -13,8 +13,11 @@ import DiscordProvider from "next-auth/providers/discord";
 import GoogleProvider from "next-auth/providers/google";
 
 import { env } from "~/env";
-import { redirect } from "~/lib/auth";
 import { db } from "~/server/db";
+
+const useSecureCookies = env.NEXTAUTH_URL.startsWith("https://");
+const cookiePrefix = useSecureCookies ? "__Secure-" : "";
+const hostName = new URL(env.NEXTAUTH_URL).hostname;
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -61,13 +64,16 @@ export const authOptions: NextAuthOptions = {
         where: { id: user.id },
       });
 
-      if (!authUser) {
-        return "/sign-in?error=account-not-found";
-      }
-
+      if (!authUser) return "/sign-in?error=account-not-found";
       return true;
     },
-    redirect,
+    async redirect(props) {
+      // Allows relative callback URLs
+      if (props.url.startsWith("/")) return `${props.baseUrl}${props.url}`;
+      // Allows callback URLs on the same origin
+      else if (new URL(props.url).origin === props.baseUrl) return props.url;
+      return props.baseUrl;
+    },
   },
   adapter: PrismaAdapter(db) as Adapter,
   providers: [
@@ -103,6 +109,18 @@ export const authOptions: NextAuthOptions = {
   ],
   pages: {
     signIn: "/sign-in",
+  },
+  cookies: {
+    sessionToken: {
+      name: `${cookiePrefix}next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        domain: "." + hostName,
+        secure: useSecureCookies,
+      },
+    },
   },
 };
 
