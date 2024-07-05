@@ -71,6 +71,10 @@ export const agentRouter = createTRPCRouter({
   listPrompts: protectedProcedure.query(({ ctx }) => {
     return TEST_PROMPT_DATA;
   }),
+
+  demoAuth: protectedProcedure.query(async ({ ctx }) => {
+    return `Welcome to Artisanal Futures Image Generator, ${ctx.session?.user.name ?? "authed user!"}`;
+  }),
 });
 
 // https://docs.google.com/spreadsheets/d/1GWFeXZihD3OExWMBJNDgfDJPYv_R9OF3gXF5hUyIebw/edit?gid=0#gid=0

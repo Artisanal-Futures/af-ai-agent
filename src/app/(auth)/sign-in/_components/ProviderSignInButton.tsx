@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation";
 export default function ProviderSignInButton(props: {
   id: string;
   name: string;
+  signUp?: boolean;
 }) {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/";
@@ -21,7 +22,7 @@ export default function ProviderSignInButton(props: {
         height={25}
         alt={props.name}
       />
-      Sign in with {props.name}
+      Sign {props?.signUp ? "up" : "in"} with {props.name}
     </button>
   );
 }

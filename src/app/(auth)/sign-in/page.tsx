@@ -3,7 +3,11 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { Suspense } from "react";
+import { env } from "~/env";
+import ErrorText from "./_components/ErrorText";
 import ProviderSignInButton from "./_components/ProviderSignInButton";
+
+const HOST_URL = `${env.NODE_ENV === "production" ? "https" : "http"}://${env.HOSTNAME}/sign-up`;
 
 export default async function SignIn() {
   const providers = await getProviders();
@@ -14,6 +18,9 @@ export default async function SignIn() {
         <div className="justify-left flex lg:w-4/12">
           {" "}
           <div className="w-96 rounded bg-white p-4 ">
+            <Suspense fallback={<div>Loading...</div>}>
+              <ErrorText />
+            </Suspense>
             <h1 className="mb-4 text-center text-2xl">
               Sign In to Artisanal Futures
             </h1>
@@ -44,7 +51,7 @@ export default async function SignIn() {
 
             <p className="text-muted-foreground w-full py-4 text-center font-medium">
               Don&apos;t have an account?{" "}
-              <Link href="https://artisanalfutures.org/sign-up">
+              <Link href={HOST_URL}>
                 <span className="font-bold hover:text-slate-800">
                   Sign up here!
                 </span>
