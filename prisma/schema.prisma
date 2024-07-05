@@ -74,6 +74,15 @@ model User {
   role              Role         @default(USER)
   depots            Depot[]
   messagingProfile  Profile?
+  
+  
+  username
+  createdAt DateTime @default(now())
+  
+  Generated_images Generated_images[]
+  Survey           Survey[]
+  Variation        Variation[]
+  Modification     Modification[]
 }
 
 model VerificationToken {
@@ -603,4 +612,47 @@ model DirectMessage {
   @@index([memberId])
   @@index([conversationId])
 }
+
+
+//////////////////AI Agent Models//////////////////
+
+model GeneratedImages {
+  id            String @id @default(cuid())
+  userId        String
+  projectTitle String
+  prompt        String
+  imageUrl     String
+  user          User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Survey {
+  id                         String @id @default(cuid())
+  userId                     String
+  projectTitle              String
+  levelOfStatisfaction     String
+  directDigitalFabrication String
+  user                       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Variation {
+  id              String @id @default(cuid())
+  userId          String
+  projectTitle   String
+  guidancePrompt String
+  imageUrl       String
+  exceutionTime  String
+  user            User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Modification {
+  id              String @id @default(cuid())
+  userId          String
+  projectTitle   String
+  guidanceScale  String
+  prompt          String
+  negativePrompt String
+  exceutionTime  String
+  user            User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 
