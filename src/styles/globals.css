@@ -63,6 +63,23 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
+
+  }
+
+  .underline-on-hover {
+    text-decoration: none;
+    /* Remove default underline */
+    color: inherit;
+    /* Inherit parent's text color */
+    border-bottom: 1.5px solid transparent;
+    /* Initially transparent underline */
+    transition: border-color 0.2s ease;
+    /* Smooth transition for underline */
+  }
+
+  .underline-on-hover:hover {
+    border-bottom-color: #3b82f6;
+    /* Change border color on hover */
   }
 }
 
