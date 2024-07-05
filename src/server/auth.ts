@@ -1,14 +1,25 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { PrismaAdapter } from "@auth/prisma-adapter";
+import { type Role } from "@prisma/client";
+
 import {
   getServerSession,
   type DefaultSession,
   type NextAuthOptions,
 } from "next-auth";
 import { type Adapter } from "next-auth/adapters";
+import Auth0Provider from "next-auth/providers/auth0";
 import DiscordProvider from "next-auth/providers/discord";
+import GoogleProvider from "next-auth/providers/google";
 
 import { env } from "~/env";
 import { db } from "~/server/db";
+
+const useSecureCookies = env.NEXTAUTH_URL.startsWith("https://");
+const cookiePrefix = useSecureCookies ? "__Secure-" : "";
+const hostName = !useSecureCookies
+  ? new URL(env.NEXTAUTH_URL).hostname
+  : env.HOSTNAME;
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -21,14 +32,14 @@ declare module "next-auth" {
     user: {
       id: string;
       // ...other properties
-      // role: UserRole;
+      role: Role;
     } & DefaultSession["user"];
   }
 
-  // interface User {
-  //   // ...other properties
-  //   // role: UserRole;
-  // }
+  interface User {
+    // ...other properties
+    role: Role;
+  }
 }
 
 /**
@@ -43,15 +54,52 @@ export const authOptions: NextAuthOptions = {
       user: {
         ...session.user,
         id: user.id,
+        role: user.role,
       },
     }),
+
+    async signIn(props) {
+      const { user } = props;
+
+      // No account, tries to sign in
+      const authUser = await db.user.findUnique({
+        where: { id: user.id },
+      });
+
+      if (!authUser) return "/sign-in?error=account-not-found";
+      return true;
+    },
+    async redirect(props) {
+      // Allows relative callback URLs
+      if (props.url.startsWith("/")) return `${props.baseUrl}${props.url}`;
+      // Allows callback URLs on the same origin
+      else if (new URL(props.url).origin === props.baseUrl) return props.url;
+      return props.baseUrl;
+    },
   },
+  secret: env.NEXTAUTH_SECRET,
   adapter: PrismaAdapter(db) as Adapter,
   providers: [
     DiscordProvider({
       clientId: env.DISCORD_CLIENT_ID,
       clientSecret: env.DISCORD_CLIENT_SECRET,
     }),
+
+    GoogleProvider({
+      clientId: env.GOOGLE_CLIENT_ID,
+      clientSecret: env.GOOGLE_CLIENT_SECRET,
+    }),
+    Auth0Provider({
+      clientId: env.AUTH0_CLIENT_ID,
+      clientSecret: env.AUTH0_CLIENT_SECRET,
+      issuer: env.AUTH0_ISSUER,
+      authorization: {
+        params: {
+          prompt: "login",
+        },
+      },
+    }),
+
     /**
      * ...add more providers here.
      *
@@ -62,6 +110,41 @@ export const authOptions: NextAuthOptions = {
      * @see https://next-auth.js.org/providers/github
      */
   ],
+  pages: {
+    signIn: "/sign-in",
+  },
+  cookies: {
+    sessionToken: {
+      name: `${cookiePrefix}next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        domain: "." + hostName,
+        secure: useSecureCookies,
+      },
+    },
+    callbackUrl: {
+      name: `__Secure-next-auth.callback-url`,
+      options: {
+        sameSite: "lax",
+        secure: true,
+        httpOnly: true,
+        path: "/",
+        domain: "." + hostName,
+      },
+    },
+    csrfToken: {
+      name: `next-auth.csrf-token`,
+      options: {
+        sameSite: "lax",
+        secure: true,
+        httpOnly: true,
+        path: "/",
+        domain: "." + hostName,
+      },
+    },
+  },
 };
 
 /**
