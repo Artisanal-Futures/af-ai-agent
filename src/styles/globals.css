@@ -63,18 +63,6 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
-
-  }
-
-  .underline-on-hover {
-    text-decoration: none;
-    color: inherit;
-    border-bottom: 1.5px solid transparent;
-    transition: border-color 0.2s ease;
-  }
-
-  .underline-on-hover:hover {
-    border-bottom-color: #3b82f6;
   }
 }
 
@@ -82,10 +70,7 @@
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground;
   }
 }
-
-@l
