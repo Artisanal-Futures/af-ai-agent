@@ -46,9 +46,9 @@ export default function Home() {
   const handleCloseCard = () => {
     setShowDownloadCard(false);
   };
-  const handleSurveyDownloadClick = () => {
-    setShowSurveyDownload(true);
-  };
+  // const handleSurveyDownloadClick = () => {
+  //   setShowSurveyDownload(true);
+  // };
 
   const onSubmit = (data: any) => {
     console.log(data);
@@ -59,6 +59,43 @@ export default function Home() {
 
   const handleNoClick = () => {
     setShowLink(true);
+  };
+
+  // survey submit
+  const [imageSatisfactory, setImageSatisfactory] = useState('option-one');
+  const [imageUsability, setImageUsability] = useState('option-one');
+
+  const handleSurveyDownloadClick = () => {
+    // Collecting survey responses
+    const surveyResponses = {
+      imageSatisfactory,
+      imageUsability,
+    };
+
+    // Logging the survey responses to the console
+    console.log(surveyResponses);
+    setShowSurveyDownload(true);
+
+    // Close the survey card if needed
+    //setShowDownloadCard(false);
+  };
+
+  //AI form vals
+  const [projectName, setProjectName] = useState('Jacket Design Ideas');
+  const [prompt, setPrompt] = useState('An image of a denim jacket with floral embroidery');
+  const handleAIFormClick = () => {
+    // Collecting survey responses
+    const aiFormResponses = {
+      projectName,
+      prompt,
+    };
+
+    // Logging the survey responses to the console
+    console.log(aiFormResponses);
+    // setaiFormResponses(true);
+
+    // Close the survey card if needed
+    //setShowDownloadCard(false);
   };
 
   return (
@@ -72,13 +109,13 @@ export default function Home() {
           <span className="text-lg font-semibold">Hi, user_name</span>
         </div>
         <div className="flex space-x-4">
-          <Button className="text-sm-black bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-lg">Past Prompts</Button>
-          <Button className="text-sm-black bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-lg">Created Images</Button>
-          <Button className="text-sm-black bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-lg">Advanced Settings</Button>
+          <Button className="text-sm-black bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-lg">Prompt History</Button>
+          <Button className="text-sm-black bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-lg">Image Variations</Button>
+          <Button className="text-sm-black bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-lg">Image Descriptions</Button>
         </div>
 
       </div>
-      <h1 className="text-5xl font-bold mt-4">Stable Diffusion AI Agent</h1>
+      <h1 className="text-5xl font-bold mt-4"> Artisanal's AI Agent</h1>
       <div className="container flex flex-col items-center justify-center gap-12 px-4 py-12">
 
         <Tabs defaultValue="generate" className="w-[90%] h-[auto]">
@@ -100,14 +137,14 @@ export default function Home() {
                   </CardHeader>
                   <div className="space-y-1 ml-6">
                     <Label htmlFor="name" className="text-base">Project Name</Label>
-                    <Input id="name" className="italic text-gray-500 font-light text-base" defaultValue="Jacket Design Ideas" />
+                    <Input id="name" className="italic text-gray-500 font-light text-base" value={projectName} onChange={(e) => setProjectName(e.target.value)} />
                   </div>
                   <div className="space-y-1 ml-6 mb-2">
                     <Label htmlFor="username" className="text-base">Prompt</Label>
-                    <Input id="username" className="italic text-gray-500 font-light text-base" defaultValue="An image of a denim jacket with floral embroidery" />
+                    <Input id="username" className="italic text-gray-500 font-light text-base" value={prompt} onChange={(e) => setPrompt(e.target.value)} />
                   </div>
                   <CardFooter className="">
-                    <Button className="text-base mt-4">Generate Image</Button>
+                    <Button className="text-base mt-4" onClick={handleAIFormClick} >Generate Image</Button>
                   </CardFooter>
                 </div>
                 {/* Right Column */}
@@ -183,10 +220,16 @@ export default function Home() {
           </TabsContent>
         </Tabs>
 
-        {/* Download Card */}
+        {/* Download/Survey Card */}
         {showDownloadCard && (
           <div className="fixed top-0 left-0 right-0 bottom-0 flex items-center justify-center bg-gray-500 bg-opacity-50 z-50">
-            <Card className="p-4 bg-white w-[60%]">
+            <Card className="relative p-4 bg-white w-[60%]">
+              {/* Close Button */}
+              <button
+                onClick={() => setShowDownloadCard(false)}
+                className="absolute top-2 right-4 text-gray-500 hover:text-gray-700">
+                &#x2715;
+              </button>
               <CardContent className="grid grid-cols-2 gap-4">
                 {/* Left Column */}
                 <div className="col-span-1 space-y-2 flex-col">
@@ -197,27 +240,27 @@ export default function Home() {
                     </CardDescription>
                   </CardHeader>
                   <div className="space-y-1 ml-6">
-                    <Label htmlFor="name" className="text-base">Do you find the generated image satisfactory to your needs? </Label>
-                    <RadioGroup defaultValue="option-one">
+                    <Label htmlFor="imageSatisfactory" className="text-base">Do you find the generated image satisfactory to your needs? </Label>
+                    <RadioGroup value={imageSatisfactory} onValueChange={setImageSatisfactory}>
                       <div className="flex items-center space-x-2 mb-7">
-                        <RadioGroupItem value="option-one" id="option-one" />
+                        <RadioGroupItem value="Yes" id="option-one" />
                         <Label htmlFor="option-one">Yes</Label>
-                        <RadioGroupItem value="option-two" id="option-two" onClick={handleNoClick} />
+                        <RadioGroupItem value="No" id="option-two" onClick={() => setShowLink(true)} />
                         <Label htmlFor="option-two">No</Label>
-                        <RadioGroupItem value="option-three" id="option-three" />
+                        <RadioGroupItem value="Close but not quite" id="option-three" />
                         <Label htmlFor="option-three">Close but not quite</Label>
                       </div>
                     </RadioGroup>
                   </div>
                   <div className="space-y-1 ml-6">
-                    <Label htmlFor="username" className="text-base">Can the generated image be used directly for digital fabrication</Label>
-                    <RadioGroup defaultValue="option-one">
+                    <Label htmlFor="imageUsability" className="text-base">Can the generated image be used directly for digital fabrication</Label>
+                    <RadioGroup value={imageUsability} onValueChange={setImageUsability}>
                       <div className="flex items-center space-x-2 mb-4">
-                        <RadioGroupItem value="option-one" id="option-one" />
+                        <RadioGroupItem value="Yes" id="option-one" />
                         <Label htmlFor="option-one">Yes</Label>
-                        <RadioGroupItem value="option-two" id="option-two" />
+                        <RadioGroupItem value="No" id="option-two" />
                         <Label htmlFor="option-two">No</Label>
-                        <RadioGroupItem value="option-three" id="option-three" />
+                        <RadioGroupItem value="Will need another tool" id="option-three" />
                         <Label htmlFor="option-three">Will need another tool</Label>
                       </div>
                     </RadioGroup>
@@ -231,7 +274,7 @@ export default function Home() {
                   {showLink && (
                     <HoverCard>
                       <HoverCardTrigger asChild>
-                        <a href="your-new-page-url" className="text-blue-500 underline-on-hover" >Advanced Image Variation Settings</a>
+                        <a href="your-new-page-url" className="text-blue-500 underline-on-hover">Advanced Image Variation Settings</a>
                       </HoverCardTrigger>
                       <HoverCardContent className="w-80">
                         <div className="flex justify-between space-x-4">
@@ -249,7 +292,7 @@ export default function Home() {
                   </div>
                   {showSurveyDownload && (
                     <div className="flex justify-center w-full mt-5" id="surveyDownload">
-                      <Button className="flex space-x-2 #ffffff-text-thin" onClick={handleCloseCard}>
+                      <Button className="flex space-x-2 #ffffff-text-thin" onClick={() => setShowDownloadCard(false)}>
                         <span>Download</span>
                         <CiImport className="text-xl" />
                       </Button>
