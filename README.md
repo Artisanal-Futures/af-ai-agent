@@ -29,7 +29,15 @@ You can check out the [create-t3-app GitHub repository](https://github.com/t3-os
 Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
 
 
-## installation instructions on windows
-- [Node.js version >= v18.17.0 is required] -follow instructions here - https://learn.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-windows
+## installation instructions 
+- [The App requires Node.js version >= v18.17.0] - follow instructions here - https://learn.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-windows
 
-- [check for next] npm install next
+- [check for installation of next] npm install next
+
+- [rename .env-e it to  .env file]
+
+- [build the app]- npm run build
+
+- npx prisma generate #this generates the files the db needs
+- npx prisma db push #pushes the files to the db. In your case, it inits the db / - updates if the schema has new changes
+- npx prisma studio #to add yourself to the db manually.
