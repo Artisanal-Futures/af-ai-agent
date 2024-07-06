@@ -38,6 +38,9 @@ Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/ver
 
 - [build the app]- npm run build
 
+- [run devlopment]- npm run dev
+
+# Prisma database settings 
 - npx prisma generate #this generates the files the db needs
 - npx prisma db push #pushes the files to the db. In your case, it inits the db / - updates if the schema has new changes
 - npx prisma studio #to add yourself to the db manually.
