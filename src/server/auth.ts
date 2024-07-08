@@ -66,7 +66,9 @@ export const authOptions: NextAuthOptions = {
         where: { id: user.id },
       });
 
-      if (!authUser) return "/sign-in?error=account-not-found";
+      if (!authUser && env.NODE_ENV === "production")
+        return "/sign-in?error=account-not-found";
+
       return true;
     },
     async redirect(props) {
