@@ -1,0 +1,16 @@
+version: "3.8"
+services:
+  postgres:
+    image: postgres:latest
+    container_name: agent-postgres
+    environment:
+      POSTGRES_ROOT_PASSWORD: rootpassword
+      POSTGRES_DATABASE: agent
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+    ports:
+      - "5333:5432"
+    volumes:
+      - agent-postgres-data:/var/lib/postgresql/data
+volumes:
+  agent-postgres-data:
