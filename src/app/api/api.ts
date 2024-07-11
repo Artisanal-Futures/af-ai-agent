@@ -26,7 +26,7 @@ export const generateImage = async (projectName: string, prompt: string, userNam
         if (!response.ok) {
             throw new Error(`Error: Status: ${response.status}`);
         }
-
+        //correct return type??
         const imageData: string = await response.text();
         return imageData;
 
