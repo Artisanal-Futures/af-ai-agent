@@ -75,7 +75,7 @@ model User {
   depots            Depot[]
   messagingProfile  Profile?
 
-  createdAt         DateTime              @default(now())
+  createdAt           DateTime              @default(now())
   generatedImages     GeneratedImages[]
   generationSurveys   GenerationSurvey[]
   variations          Variation[]

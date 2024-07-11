@@ -9,6 +9,8 @@ import {
   generateImageSchema,
 } from "~/types/agent";
 
+const BASE_URL = "http://35.1.114.178:8000";
+
 const TEST_USER_DATA = [
   { user_name: "John Doe" },
   { user_name: "Jane Doe" },
@@ -43,10 +45,22 @@ export const agentRouter = createTRPCRouter({
   generateImage: protectedProcedure
     .input(generateImageSchema)
     .mutation(async ({ ctx, input }) => {
-      // simulate a slow db call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const url = `${BASE_URL}/sdm/api/v2/generate/images`;
 
-      return TEST_BASE_64;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(input),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error: Status: ${response.status}`);
+      }
+      //correct return type??
+      const imageData: string = await response.text();
+      return imageData;
     }),
 
   createSurvey: protectedProcedure
