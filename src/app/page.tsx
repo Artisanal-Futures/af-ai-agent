@@ -24,7 +24,7 @@ import { generateImage } from './api/api';
 export default function Home() {
 
   //image generate
-  const [generatedImage, setGeneratedImage] = useState<string>(''); // State to store the generated image
+  const [generatedImage, setGeneratedImage] = useState<string>(''); 
   const handleGenerateImage = async () => {
     try {
       const imageData = await generateImage(projectName, prompt, "userName");
