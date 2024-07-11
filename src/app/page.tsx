@@ -98,6 +98,8 @@ export default function Home() {
     //setShowDownloadCard(false);
   };
 
+  //
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#ffffff] to-[#e5e7eb] text-black">
       {/* Menu */}
