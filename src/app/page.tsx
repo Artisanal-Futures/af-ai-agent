@@ -19,19 +19,22 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
-
-//?
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z, ZodError } from "zod";
-
-// TO DO:
-// - change htmlFor and values to not be password etc related
-// - create variations page
-// - survey and survey button
-// - UI points 8 and 9
+import { generateImage } from './api/api';
 
 export default function Home() {
+
+  //image generate
+  const [generatedImage, setGeneratedImage] = useState<string>(''); // State to store the generated image
+  const handleGenerateImage = async () => {
+    try {
+      const imageData = await generateImage(projectName, prompt, "userName");
+      console.log(imageData);
+      setGeneratedImage(imageData);
+    } catch (error) {
+      console.log('Error generating image:', error);
+    }
+  };
+
   //File Upload
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
@@ -118,9 +121,9 @@ export default function Home() {
           <span className="text-lg font-semibold">Hi, user_name</span>
         </div>
         <div className="flex space-x-4">
-          <Button className="text-sm-black bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-lg">Past Prompts</Button>
-          <Button className="text-sm-black bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-lg">Created Images</Button>
-          <Button className="text-sm-black bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-lg">Advanced Settings</Button>
+          <Button className="text-sm-black bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-lg">Prompt History</Button>
+          <Button className="text-sm-black bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-lg">Image Variations</Button>
+          <Button className="text-sm-black bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-lg">Image Descriptions</Button>
         </div>
       </div>
       <h1 className="text-5xl font-bold mt-4">Stable Diffusion AI Agent</h1>
@@ -152,7 +155,16 @@ export default function Home() {
                     <Input id="username" className="italic text-gray-500 font-light text-base" defaultValue="An image of a denim jacket with floral embroidery" />
                   </div>
                   <CardFooter className="">
-                    <Button className="text-base mt-4">Generate Image</Button>
+                    {/* <Button className="text-base mt-4">Generate Image</Button> */}
+                    {/* Generate Image */}
+                    <Button className="text-base mt-4" onClick={handleGenerateImage}>Generate Image</Button>
+
+                    {generatedImage && (
+                      <div>
+                        <h2>Generated Image</h2>
+                        <img src={`data:image/jpeg;base64,${generatedImage}`} alt="Generated Image" />
+                      </div>
+                    )}
                   </CardFooter>
                 </div>
                 {/* Right Column */}
