@@ -36,15 +36,18 @@ export default function Home() {
     },
   });
 
-  //image generate
+  //image generate // user_uname: session?.user?.name ?? "user",
   const [generatedImage, setGeneratedImage] = useState<string>("");
+
   const handleGenerateImage = async () => {
+    const userId = session?.user?.name ? parseInt(session.user.name) : 1;
     await generateImage.mutateAsync({
-      project_name: projectName,
+      project_title: projectName,
       prompt: prompt,
-      user_uname: session?.user?.name ?? "user",
+      user_id: userId,
     });
   };
+
 
   //File Upload
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -106,6 +109,7 @@ export default function Home() {
   const [prompt, setPrompt] = useState(
     "An image of a denim jacket with floral embroidery",
   );
+
   const handleAIFormClick = () => {
     // Collecting survey responses
     const aiFormResponses = {
@@ -136,7 +140,7 @@ export default function Home() {
           {/* Replace with user name*/}
 
           <span className="text-lg font-semibold">
-            Hi, {session?.user?.name ?? "user!"}{" "}
+            Hi, {session?.user?.name ?? "user!"}{"  "}
             {!session && " Login to save your work"}
           </span>
         </div>
@@ -211,10 +215,10 @@ export default function Home() {
                     {generatedImage && (
                       <div>
                         <h2>Generated Image</h2>
-                        <img
+                        {/* <img
                           src={`data:image/jpeg;base64,${generatedImage}`}
                           alt="Generated Image"
-                        />
+                        /> */}
                       </div>
                     )}
                   </CardFooter>
@@ -295,7 +299,20 @@ export default function Home() {
                     )}
                   </div>
                   <CardFooter className="">
-                    <Button className="mt-3 text-base">Create Variation</Button>
+                    {/* <Button className="mt-3 text-base">Create Variation</Button> */}
+                    {/* change to handle create variation endpoint */}
+                    <Button
+                      className="mt-4 text-base"
+                      onClick={handleGenerateImage}
+                      disabled={generateImage.isPending}
+                    >
+                      {generateImage.isPending ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : null}
+                      {generateImage.isPending
+                        ? "Creating..."
+                        : "Create Variation"}
+                    </Button>
                   </CardFooter>
                 </div>
                 {/* Right Column */}
@@ -334,49 +351,10 @@ export default function Home() {
                   <div className="ml-6 space-y-1">
                     <Label htmlFor="name" className="text-base">
                       Do you find the generated image satisfactory to your
-                      needs?{" "}
+                      needs, or would you like to edit the configurations? {" "}
                     </Label>
-                    <RadioGroup defaultValue="option-one">
-                      <div className="mb-7 flex items-center space-x-2">
-                        <RadioGroupItem value="option-one" id="option-one" />
-                        <Label htmlFor="option-one">Yes</Label>
-                        <RadioGroupItem
-                          value="option-two"
-                          id="option-two"
-                          onClick={handleNoClick}
-                        />
-                        <Label htmlFor="option-two">No</Label>
-                        <RadioGroupItem
-                          value="option-three"
-                          id="option-three"
-                        />
-                        <Label htmlFor="option-three">
-                          Close but not quite
-                        </Label>
-                      </div>
-                    </RadioGroup>
                   </div>
-                  <div className="ml-6 space-y-1">
-                    <Label htmlFor="username" className="text-base">
-                      Can the generated image be used directly for digital
-                      fabrication
-                    </Label>
-                    <RadioGroup defaultValue="option-one">
-                      <div className="mb-4 flex items-center space-x-2">
-                        <RadioGroupItem value="option-one" id="option-one" />
-                        <Label htmlFor="option-one">Yes</Label>
-                        <RadioGroupItem value="No" id="option-two" />
-                        <Label htmlFor="option-two">No</Label>
-                        <RadioGroupItem
-                          value="option-three"
-                          id="option-three"
-                        />
-                        <Label htmlFor="option-three">
-                          Will need another tool
-                        </Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
+
                   <CardFooter className="">
                     <Button
                       className="mt-5 text-base"

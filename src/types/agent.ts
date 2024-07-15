@@ -1,9 +1,10 @@
 import * as z from "zod";
 
 export const generateImageSchema = z.object({
-  project_name: z.string(),
+  project_title: z.string(),
   prompt: z.string(),
-  user_uname: z.string(),
+  // user_uname: z.string(),
+  user_id: z.number(),
 });
 
 export const createSurveySchema = z.object({
@@ -13,6 +14,9 @@ export const createSurveySchema = z.object({
 });
 
 export const createImageVariationSchema = z.object({
+  guidance_prompt: z.string(),
+  user_id: z.number(),
+  project_title: z.string(),
   input_image: z.string(),
 });
 
@@ -23,3 +27,5 @@ export const listPromptsSchema = z.object({
 });
 
 export type GenerateImageInput = z.infer<typeof generateImageSchema>;
+export type CreateImageInput = z.infer<typeof createImageVariationSchema>;
+
