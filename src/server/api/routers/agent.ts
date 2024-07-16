@@ -9,7 +9,9 @@ import {
   generateImageSchema,
 } from "~/types/agent";
 
-const BASE_URL = "http://35.1.114.178:8000";
+// const BASE_URL = "http://35.1.114.178:8000";
+const BASE_URL = 'http://35.3.242.60:8000';
+
 
 const TEST_USER_DATA = [
   { user_name: "John Doe" },
@@ -42,7 +44,8 @@ export const agentRouter = createTRPCRouter({
     return TEST_USER_DATA;
   }),
 
-  generateImage: protectedProcedure
+  //make protected later
+  generateImage: publicProcedure
     .input(generateImageSchema)
     .mutation(async ({ ctx, input }) => {
       const url = `${BASE_URL}/sdm/api/v2/generate/images`;
@@ -63,7 +66,7 @@ export const agentRouter = createTRPCRouter({
       return imageData;
     }),
 
-  createSurvey: protectedProcedure
+  createSurvey: publicProcedure
     .input(createSurveySchema)
     .mutation(async ({ ctx, input }) => {
       // simulate a slow db call
@@ -74,7 +77,7 @@ export const agentRouter = createTRPCRouter({
       };
     }),
 
-  createImageVariation: protectedProcedure
+  createImageVariation: publicProcedure
     .input(createImageVariationSchema)
     .mutation(async ({ ctx, input }) => {
       // simulate a slow db call
@@ -82,11 +85,11 @@ export const agentRouter = createTRPCRouter({
       return TEST_BASE_64;
     }),
 
-  listPrompts: protectedProcedure.query(({ ctx }) => {
+  listPrompts: publicProcedure.query(({ ctx }) => {
     return TEST_PROMPT_DATA;
   }),
 
-  demoAuth: protectedProcedure.query(async ({ ctx }) => {
+  demoAuth: publicProcedure.query(async ({ ctx }) => {
     return `Welcome to Artisanal Futures Image Generator, ${ctx.session?.user.name ?? "authed user!"}`;
   }),
 });

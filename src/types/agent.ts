@@ -1,5 +1,7 @@
 import * as z from "zod";
 
+
+
 export const generateImageSchema = z.object({
   project_title: z.string(),
   prompt: z.string(),

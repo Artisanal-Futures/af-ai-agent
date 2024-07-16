@@ -36,15 +36,13 @@ export default function Home() {
     },
   });
 
-  //image generate // user_uname: session?.user?.name ?? "user",
+  //image generate
   const [generatedImage, setGeneratedImage] = useState<string>("");
-
   const handleGenerateImage = async () => {
-    const userId = session?.user?.name ? parseInt(session.user.name) : 1;
     await generateImage.mutateAsync({
       project_title: projectName,
       prompt: prompt,
-      user_id: userId,
+      user_id: 1,
     });
   };
 
@@ -56,6 +54,24 @@ export default function Home() {
     const file = e.target.files?.[0];
     if (file) {
       setSelectedImage(URL.createObjectURL(file));
+    }
+  };
+
+  // NST file uplaod
+  const [selectedContentImage, setSelectedContentImage] = useState(null);
+  const [selectedStyleImage, setSelectedStyleImage] = useState(null);
+
+  const handleContentImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedContentImage(URL.createObjectURL(file));
+    }
+  };
+
+  const handleStyleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedStyleImage(URL.createObjectURL(file));
     }
   };
 
@@ -109,7 +125,6 @@ export default function Home() {
   const [prompt, setPrompt] = useState(
     "An image of a denim jacket with floral embroidery",
   );
-
   const handleAIFormClick = () => {
     // Collecting survey responses
     const aiFormResponses = {
@@ -125,14 +140,12 @@ export default function Home() {
     //setShowDownloadCard(false);
   };
 
-  //
-
   const { data: session } = useSession();
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#ffffff] to-[#e5e7eb] text-black">
       {/* Menu */}
-      <div className="fixed left-0 right-0 top-0 z-50 flex w-full items-center justify-between bg-white px-4 py-2 shadow-md">
+      <div className="fixed left-0 right-0 top-0 z-50 mb-5 flex w-full items-center justify-between bg-white px-4 py-2 shadow-md">
         <div className="flex items-center space-x-4">
           {/* Profile Pic and info */}
           <SignInButton hasSession={!!session} />
@@ -140,7 +153,7 @@ export default function Home() {
           {/* Replace with user name*/}
 
           <span className="text-lg font-semibold">
-            Hi, {session?.user?.name ?? "user!"}{"  "}
+            Hi, {session?.user?.name ?? "user!"}{" "}
             {!session && " Login to save your work"}
           </span>
         </div>
@@ -156,13 +169,15 @@ export default function Home() {
           </Button>
         </div>
       </div>
-      <h1 className="mt-4 text-5xl font-bold">Stable Diffusion AI Agent</h1>
-      <div className="container flex flex-col items-center justify-center gap-12 px-4 py-12">
+      <h1 className="mt-16 md:mt-16 text-5xl font-bold">Artisanal&apos;s AI Agent</h1>
+      <div className="container flex flex-col h-[calc(100%-5rem)] items-center justify-center gap-12 px-4 py-12">
         <Tabs defaultValue="generate" className="h-[auto] w-[90%]">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="generate">Generate Image</TabsTrigger>
             <TabsTrigger value="variation">Create Variations</TabsTrigger>
+            <TabsTrigger value="style_transfer">Style Transfer</TabsTrigger>
           </TabsList>
+
           {/*Generate Image Tab */}
           <TabsContent value="generate">
             <Card>
@@ -215,20 +230,37 @@ export default function Home() {
                     {generatedImage && (
                       <div>
                         <h2>Generated Image</h2>
-                        {/* <img
+                        <img
                           src={`data:image/jpeg;base64,${generatedImage}`}
                           alt="Generated Image"
-                        /> */}
+                        />
                       </div>
                     )}
                   </CardFooter>
                 </div>
                 {/* Right Column */}
                 <div className="col-span-1 flex flex-col items-center justify-center space-y-5">
-                  <div className="mt-7 flex h-64 w-64 items-center justify-center bg-gray-200">
-                    <span className="text-lg font-bold">Generated Image</span>
+                  <div className="mt-7 flex h-64 w-64 items-center justify-center bg-gray-100 border-2 border-dashed border-gray-400 rounded-lg">
+                    {/* <span className="text-lg font-bold text-gray-300">Generated Image</span> */}
+                    {generateImage.isPending ? (
+                      <div className="flex flex-col items-center justify-center">
+                        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                        <span className="mt-2 text-lg font-bold text-gray-400">
+                          Loading Image...
+                        </span>
+                      </div>
+                    ) : generatedImage ? (
+                      <img
+                        className="h-full w-full object-cover rounded-lg"
+                        src={`data:image/jpeg;base64,${generatedImage}`}
+                        alt="Generated Image"
+                      />
+                    ) : (
+                      <span className="text-lg font-bold text-gray-400">
+                        Generated Image
+                      </span>
+                    )}
                   </div>
-                  {/* <p className="text-lg text-center mt-2">Placeholder for generated image</p> */}
                   {/* <div className="flex justify-end w-full mt-5 mr-6"> */}
                   <div className="mt-5 flex w-full justify-center">
                     <Button
@@ -299,20 +331,7 @@ export default function Home() {
                     )}
                   </div>
                   <CardFooter className="">
-                    {/* <Button className="mt-3 text-base">Create Variation</Button> */}
-                    {/* change to handle create variation endpoint */}
-                    <Button
-                      className="mt-4 text-base"
-                      onClick={handleGenerateImage}
-                      disabled={generateImage.isPending}
-                    >
-                      {generateImage.isPending ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      ) : null}
-                      {generateImage.isPending
-                        ? "Creating..."
-                        : "Create Variation"}
-                    </Button>
+                    <Button className="mt-3 text-base">Create Variation</Button>
                   </CardFooter>
                 </div>
                 {/* Right Column */}
@@ -333,6 +352,127 @@ export default function Home() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/*StyleTransfer Tab */}
+          <TabsContent value="style_transfer">
+            <Card>
+              <CardContent className="grid grid-cols-2 gap-4">
+                {/* Left Column */}
+                <div className="col-span-1 space-y-2">
+                  <CardHeader>
+                    <CardTitle className="text-2xl">Neural Style Transfer</CardTitle>
+                    <CardDescription className="text-lg">
+                      Enter two images. One of your content and another of a style you would like to apply to your content.
+                    </CardDescription>
+                  </CardHeader>
+                  <div className="ml-6 space-y-1">
+                    <Label htmlFor="name" className="text-base">
+                      Project Name
+                    </Label>
+                    <Input
+                      id="name"
+                      className="text-base font-light italic text-gray-500"
+                      defaultValue="Project 1"
+                    />
+                  </div>
+                  <div className="ml-6 space-y-1 flex flex-row">
+                    <div className="mr-6">
+                      <Label htmlFor="content-upload" className="text-base">
+                        Upload Content Image
+                      </Label>
+                      <Input
+                        id="content-upload"
+                        type="file"
+                        className="text-base font-light italic text-gray-500 hover:underline"
+                        onChange={handleContentImageUpload}
+                      />
+                      {selectedContentImage && (
+                        <div className="mt-2">
+                          <img
+                            src={selectedContentImage}
+                            alt="Selected Content"
+                            className="h-64 w-64 object-cover"
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label htmlFor="style-upload" className="text-base">
+                        Upload Style Image
+                      </Label>
+                      <Input
+                        id="style-upload"
+                        type="file"
+                        className="text-base font-light italic text-gray-500 hover:underline"
+                        onChange={handleStyleImageUpload}
+                      />
+                      {selectedStyleImage && (
+                        <div className="mt-2">
+                          <img
+                            src={selectedStyleImage}
+                            alt="Selected Style"
+                            className="h-64 w-64 object-cover"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <CardFooter className="">
+                    {/* <Button className="text-base mt-4">Generate Image</Button> */}
+                    {/* Generate Image */}
+                    <Button
+                      className="mt-4 text-base"
+                      onClick={handleGenerateImage}
+                      disabled={generateImage.isPending}
+                    >
+                      {generateImage.isPending ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : null}
+                      {generateImage.isPending
+                        ? "Transfering..."
+                        : "Transfer Style"}
+                    </Button>
+                  </CardFooter>
+                </div>
+                {/* Right Column */}
+                <div className="col-span-1 flex flex-col items-center justify-center space-y-5">
+                  <div className="mt-7 flex h-64 w-64 items-center justify-center bg-gray-100 border-2 border-dashed border-gray-400 rounded-lg">
+                    {/* <span className="text-lg font-bold text-gray-300">Generated Image</span> */}
+                    {generateImage.isPending ? (
+                      <div className="flex flex-col items-center justify-center">
+                        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                        <span className="mt-2 text-lg font-bold text-gray-400">
+                          Loading Image...
+                        </span>
+                      </div>
+                    ) : generatedImage ? (
+                      <img
+                        className="h-full w-full object-cover rounded-lg"
+                        src={`data:image/jpeg;base64,${generatedImage}`}
+                        alt="Generated Image"
+                      />
+                    ) : (
+                      <span className="text-lg font-bold text-gray-400">
+                        Generated Image
+                      </span>
+                    )}
+                  </div>
+                  {/* <div className="flex justify-end w-full mt-5 mr-6"> */}
+                  <div className="mt-5 flex w-full justify-center">
+                    <Button
+                      className="#ffffff-text-thin flex space-x-2"
+                      onClick={handleDownloadClick}
+                    >
+                      <span>Download</span>
+                      <CiImport className="text-xl" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
         </Tabs>
 
         {/* Download/Survey Card */}
@@ -351,10 +491,49 @@ export default function Home() {
                   <div className="ml-6 space-y-1">
                     <Label htmlFor="name" className="text-base">
                       Do you find the generated image satisfactory to your
-                      needs, or would you like to edit the configurations? {" "}
+                      needs?{" "}
                     </Label>
+                    <RadioGroup defaultValue="option-one">
+                      <div className="mb-7 flex items-center space-x-2">
+                        <RadioGroupItem value="option-one" id="option-one" />
+                        <Label htmlFor="option-one">Yes</Label>
+                        <RadioGroupItem
+                          value="option-two"
+                          id="option-two"
+                          onClick={handleNoClick}
+                        />
+                        <Label htmlFor="option-two">No</Label>
+                        <RadioGroupItem
+                          value="option-three"
+                          id="option-three"
+                        />
+                        <Label htmlFor="option-three">
+                          Close but not quite
+                        </Label>
+                      </div>
+                    </RadioGroup>
                   </div>
-
+                  <div className="ml-6 space-y-1">
+                    <Label htmlFor="username" className="text-base">
+                      Can the generated image be used directly for digital
+                      fabrication
+                    </Label>
+                    <RadioGroup defaultValue="option-one">
+                      <div className="mb-4 flex items-center space-x-2">
+                        <RadioGroupItem value="option-one" id="option-one" />
+                        <Label htmlFor="option-one">Yes</Label>
+                        <RadioGroupItem value="No" id="option-two" />
+                        <Label htmlFor="option-two">No</Label>
+                        <RadioGroupItem
+                          value="option-three"
+                          id="option-three"
+                        />
+                        <Label htmlFor="option-three">
+                          Will need another tool
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
                   <CardFooter className="">
                     <Button
                       className="mt-5 text-base"
@@ -411,6 +590,6 @@ export default function Home() {
           </div>
         )}
       </div>
-    </main>
+    </main >
   );
 }
