@@ -335,9 +335,27 @@ export default function Home() {
                   </CardFooter>
                 </div>
                 {/* Right Column */}
-                <div className="col-span-1 flex flex-col items-center justify-center space-y-3">
-                  <div className="mb-9 mt-10 flex h-64 w-64 items-center justify-center bg-gray-200">
-                    <span className="text-lg font-bold">Generated Image</span>
+                <div className="col-span-1 flex flex-col items-center justify-center space-y-5">
+                  <div className="mt-7 flex h-64 w-64 items-center justify-center bg-gray-100 border-2 border-dashed border-gray-400 rounded-lg">
+                    {/* <span className="text-lg font-bold">Generated Image</span> */}
+                    {generateImage.isPending ? (
+                      <div className="flex flex-col items-center justify-center">
+                        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                        <span className="mt-2 text-lg font-bold text-gray-400">
+                          Loading Image...
+                        </span>
+                      </div>
+                    ) : generatedImage ? (
+                      <img
+                        className="h-full w-full object-cover rounded-lg"
+                        src={`data:image/jpeg;base64,${generatedImage}`}
+                        alt="Generated Image"
+                      />
+                    ) : (
+                      <span className="text-lg font-bold text-gray-400">
+                        Generated Image
+                      </span>
+                    )}
                   </div>
                   <div className="flex w-full justify-center">
                     <Button
