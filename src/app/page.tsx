@@ -38,12 +38,25 @@ export default function Home() {
 
   //image generate
   const [generatedImage, setGeneratedImage] = useState<string>("");
+  // const handleGenerateImage = async () => {
+  //   await generateImage.mutateAsync({
+  //     project_title: projectName,
+  //     prompt: prompt,
+  //     user_id: 1,
+  //   });
+  // };
   const handleGenerateImage = async () => {
-    await generateImage.mutateAsync({
-      project_title: projectName,
-      prompt: prompt,
-      user_id: 1,
-    });
+    try {
+      const imageData = await generateImage.mutateAsync({
+        project_title: projectName,
+        prompt: prompt,
+        user_id: 1,
+      });
+      console.log("Response from generateImage:", imageData);
+      setGeneratedImage(imageData);
+    } catch (error) {
+      console.error("Error in handleGenerateImage:", error);
+    }
   };
 
 
@@ -230,10 +243,10 @@ export default function Home() {
                     {generatedImage && (
                       <div>
                         <h2>Generated Image</h2>
-                        <img
+                        {/* <img
                           src={`data:image/jpeg;base64,${generatedImage}`}
                           alt="Generated Image"
-                        />
+                        /> */}
                       </div>
                     )}
                   </CardFooter>

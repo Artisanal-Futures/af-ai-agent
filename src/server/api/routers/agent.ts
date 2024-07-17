@@ -9,8 +9,8 @@ import {
   generateImageSchema,
 } from "~/types/agent";
 
-// const BASE_URL = "http://35.1.114.178:8000";
-const BASE_URL = 'http://35.3.242.60:8000';
+const BASE_URL = "http://35.1.114.178:8000";
+// const BASE_URL = 'http://35.3.242.60:8000';
 
 
 const TEST_USER_DATA = [
@@ -48,7 +48,11 @@ export const agentRouter = createTRPCRouter({
   generateImage: publicProcedure
     .input(generateImageSchema)
     .mutation(async ({ ctx, input }) => {
-      const url = `${BASE_URL}/sdm/api/v2/generate/images`;
+      const { project_title, prompt, user_id } = input;
+      // const url = `${BASE_URL}/sdm/api/v2/generate/images`;
+      const baseUrl = `${BASE_URL}/sdm/api/v2/generate/images`;
+      const queryParams = `?project_title=${encodeURIComponent(project_title)}&prompt=${encodeURIComponent(prompt)}&user_id=${user_id}`;
+      const url = `${baseUrl}${queryParams}`;
 
       const response = await fetch(url, {
         method: "POST",
