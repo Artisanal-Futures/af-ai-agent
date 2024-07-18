@@ -38,24 +38,21 @@ export default function Home() {
 
   //image generate
   const [generatedImage, setGeneratedImage] = useState<string>("");
-  // const handleGenerateImage = async () => {
-  //   await generateImage.mutateAsync({
-  //     project_title: projectName,
-  //     prompt: prompt,
-  //     user_id: 1,
-  //   });
-  // };
   const handleGenerateImage = async () => {
+    //   await generateImage.mutateAsync({
+    //     project_title: projectName,
+    //     prompt: prompt,
+    //     user_id: 1,
+    //   });
+    // };
     try {
-      const imageData = await generateImage.mutateAsync({
+      await generateImage.mutateAsync({
         project_title: projectName,
         prompt: prompt,
         user_id: 1,
       });
-      console.log("Response from generateImage:", imageData);
-      setGeneratedImage(imageData);
     } catch (error) {
-      console.error("Error in handleGenerateImage:", error);
+      console.error('Failed to generate image:', error);
     }
   };
 
@@ -71,8 +68,8 @@ export default function Home() {
   };
 
   // NST file uplaod
-  const [selectedContentImage, setSelectedContentImage] = useState(null);
-  const [selectedStyleImage, setSelectedStyleImage] = useState(null);
+  const [selectedContentImage, setSelectedContentImage] = useState<string | null>(null);
+  const [selectedStyleImage, setSelectedStyleImage] = useState<string | null>(null);
 
   const handleContentImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -144,14 +141,13 @@ export default function Home() {
       projectName,
       prompt,
     };
-
     // Logging the survey responses to the console
     console.log(aiFormResponses);
-    // setaiFormResponses(true);
 
     // Close the survey card if needed
     //setShowDownloadCard(false);
   };
+
 
   const { data: session } = useSession();
 

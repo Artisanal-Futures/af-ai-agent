@@ -6,16 +6,17 @@ const BASE_URL = 'http://35.1.114.178:8000';
 
 // Generate image
 export const generateImage = async (projectName: string, prompt: string, userId: number): Promise<string> => {
-    const url = `${BASE_URL}/sdm/api/v2/generate/images`;
+    // const url = `${BASE_URL}/sdm/api/v2/generate/images`;
 
-    // const baseUrl = `${BASE_URL}/sdm/api/v2/generate/images`;
-    // const queryParams = `?project_title=${encodeURIComponent(projectName)}&prompt=${encodeURIComponent(prompt)}&user_id=${userId}`;
-    // const url = `${baseUrl}${queryParams}`;
+    const baseUrl = `${BASE_URL}/sdm/api/v2/generate/images`;
+    const queryParams = `?project_title=${encodeURIComponent(projectName)}&prompt=${encodeURIComponent(prompt)}&user_id=${userId}`;
+    const url = `${baseUrl}${queryParams}`;
+    console.log('Request URL:', url);
 
     const requestData: GenerateImageInput = {
         project_title: projectName,
         prompt: prompt,
-        user_id: 1,
+        user_id: userId,
     };
 
 
@@ -25,15 +26,19 @@ export const generateImage = async (projectName: string, prompt: string, userId:
         const response = await fetch(url, {
             method: 'POST',
             headers: {
-                'content-type': 'application/json',
+                'Content-Type': 'application/json',
             },
             body: JSON.stringify(requestData),
         });
-        console.log('Request URL:', url);
         console.log('Request Data:', JSON.stringify(requestData));
 
+        // if (!response.ok) {
+        //     throw new Error(`Error: Status: ${response.status}`);
+        // }
+
         if (!response.ok) {
-            throw new Error(`Error: Status: ${response.status}`);
+            const errorText = await response.text();
+            throw new Error(`Error: Status: ${response.status}, Message: ${errorText}`);
         }
 
         const imageData: string = await response.text();

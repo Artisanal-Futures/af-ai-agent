@@ -49,7 +49,9 @@ export const agentRouter = createTRPCRouter({
     .input(generateImageSchema)
     .mutation(async ({ ctx, input }) => {
       const { project_title, prompt, user_id } = input;
+
       // const url = `${BASE_URL}/sdm/api/v2/generate/images`;
+
       const baseUrl = `${BASE_URL}/sdm/api/v2/generate/images`;
       const queryParams = `?project_title=${encodeURIComponent(project_title)}&prompt=${encodeURIComponent(prompt)}&user_id=${user_id}`;
       const url = `${baseUrl}${queryParams}`;
