@@ -1,4 +1,5 @@
 "use client";
+import { create } from "domain";
 import { Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
@@ -24,7 +25,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { api } from "~/trpc/react";
 import { SessionDropDownMenu } from "./(auth)/_components/session-dropdown-menu";
 import { SignInButton } from "./(auth)/_components/sign-in-button";
-import { create } from "domain";
 
 export default function Home() {
   const generateImage = api.agent.generateImage.useMutation({
@@ -35,15 +35,14 @@ export default function Home() {
     onError: (error) => {
       console.error("Error generating image:", error);
       setGeneratedImage("test");
-
     },
   });
 
   //image generate
   const [generatedImage, setGeneratedImage] = useState<string>("");
-  const defaultImagePath = '/img/stable-diffusion-xl--f7d3df13d07a4c4abe50690e4a994336.png';
+  const defaultImagePath =
+    "/img/stable-diffusion-xl--f7d3df13d07a4c4abe50690e4a994336.png";
   const handleGenerateImage = async () => {
-
     try {
       const imageData = await generateImage.mutateAsync({
         project_title: projectName,
@@ -52,15 +51,13 @@ export default function Home() {
       });
       setGeneratedImage(imageData);
     } catch (error) {
-      console.error('Failed to generate image:', error);
+      console.error("Failed to generate image:", error);
       setGeneratedImage(defaultImagePath);
     }
 
     //placeholder
     // setGeneratedImage(defaultImagePath);
-
   };
-
 
   const createImageVariation = api.agent.createImageVariation.useMutation({
     onSuccess: (varData) => {
@@ -74,7 +71,9 @@ export default function Home() {
   });
   const [generatedVariation, setGeneratedVariation] = useState<string>("");
   const [projectName2, setProjectName2] = useState<string>("Bag Design Ideas");
-  const [guidancePrompt, setGuidancePrompt] = useState<string>("Design a bag with this pattern");
+  const [guidancePrompt, setGuidancePrompt] = useState<string>(
+    "Design a bag with this pattern",
+  );
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const image = selectedImage ?? defaultImagePath;
   const handleCreateImageVariation = async () => {
@@ -87,7 +86,7 @@ export default function Home() {
       });
       setGeneratedVariation(varData);
     } catch (error) {
-      console.error('Failed to create image variation:', error);
+      console.error("Failed to create image variation:", error);
       setGeneratedVariation(defaultImagePath);
     }
   };
@@ -106,13 +105,17 @@ export default function Home() {
       // const data = await trpc.query('listGenerations');
       // setGenerations(data);
     } catch (error) {
-      console.error('Error fetching generations:', error);
+      console.error("Error fetching generations:", error);
     }
   };
 
   // NST file uplaod
-  const [selectedContentImage, setSelectedContentImage] = useState<string | null>(null);
-  const [selectedStyleImage, setSelectedStyleImage] = useState<string | null>(null);
+  const [selectedContentImage, setSelectedContentImage] = useState<
+    string | null
+  >(null);
+  const [selectedStyleImage, setSelectedStyleImage] = useState<string | null>(
+    null,
+  );
 
   const handleContentImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -205,13 +208,12 @@ export default function Home() {
     //setShowDownloadCard(false);
   };
 
-
   const { data: session } = useSession();
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#ffffff] to-[#e5e7eb] text-black">
       {/* Menu */}
-      <div className="fixed left-0 right-0 top-0 z-100 mb-5 flex w-full items-center justify-between bg-white px-4 py-2 shadow-md">
+      <div className="z-100 fixed left-0 right-0 top-0 mb-5 flex w-full items-center justify-between bg-white px-4 py-2 shadow-md">
         <div className="flex items-center space-x-4">
           {/* Profile Pic and info */}
           <SignInButton hasSession={!!session} />
@@ -226,12 +228,15 @@ export default function Home() {
         <div className="flex space-x-4">
           <HoverCard>
             <HoverCardTrigger asChild>
-              <Button onClick={handlePastPrompts} className="text-sm-black rounded-lg bg-gray-200 px-3 py-1 hover:bg-gray-300">
+              <Button
+                onClick={handlePastPrompts}
+                className="text-sm-black rounded-lg bg-gray-200 px-3 py-1 hover:bg-gray-300"
+              >
                 Prompt History
               </Button>
             </HoverCardTrigger>
             <HoverCardContent>
-              <p className="text-sm text-center">
+              <p className="text-center text-sm">
                 View your past generation requests
               </p>
             </HoverCardContent>
@@ -239,12 +244,15 @@ export default function Home() {
 
           <HoverCard>
             <HoverCardTrigger asChild>
-              <Button onClick={handleImageHistory} className="text-sm-black rounded-lg bg-gray-200 px-3 py-1 hover:bg-gray-300">
+              <Button
+                onClick={handleImageHistory}
+                className="text-sm-black rounded-lg bg-gray-200 px-3 py-1 hover:bg-gray-300"
+              >
                 Image Variations
               </Button>
             </HoverCardTrigger>
             <HoverCardContent>
-              <p className="text-sm text-center">
+              <p className="text-center text-sm">
                 View images you have created
               </p>
             </HoverCardContent>
@@ -257,17 +265,17 @@ export default function Home() {
               </Button>
             </HoverCardTrigger>
             <HoverCardContent>
-              <p className="text-sm text-center">
+              <p className="text-center text-sm">
                 View image descriptions of past creations
               </p>
             </HoverCardContent>
           </HoverCard>
-
-
         </div>
       </div>
-      <h1 className="mt-16 md:mt-16 text-5xl font-bold">Artisanal&apos;s AI Agent</h1>
-      <div className="container flex flex-col h-[calc(100%-5rem)] items-center justify-center gap-12 px-4 py-12">
+      <h1 className="mt-16 text-5xl font-bold md:mt-16">
+        Artisanal&apos;s AI Agent
+      </h1>
+      <div className="container flex h-[calc(100%-5rem)] flex-col items-center justify-center gap-12 px-4 py-12">
         <Tabs defaultValue="generate" className="h-[auto] w-[90%]">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="generate">Generate Image</TabsTrigger>
@@ -325,12 +333,11 @@ export default function Home() {
                         ? "Generating..."
                         : "Generate Image"}
                     </Button>
-
                   </CardFooter>
                 </div>
                 {/* Right Column */}
                 <div className="col-span-1 flex flex-col items-center justify-center space-y-5">
-                  <div className="mt-7 flex h-64 w-64 items-center justify-center bg-gray-100 border-2 border-dashed border-gray-400 rounded-lg">
+                  <div className="mt-7 flex h-64 w-64 items-center justify-center rounded-lg border-2 border-dashed border-gray-400 bg-gray-100">
                     {/* <span className="text-lg font-bold text-gray-300">Generated Image</span> */}
                     {generateImage.isPending ? (
                       <div className="flex flex-col items-center justify-center">
@@ -343,7 +350,7 @@ export default function Home() {
                       <img
                         src={generatedImage}
                         alt="Generated Image"
-                      // style={{ maxWidth: '100%', maxHeight: '500px' }}
+                        // style={{ maxWidth: '100%', maxHeight: '500px' }}
                       />
                     ) : (
                       <span className="text-lg font-bold text-gray-400">
@@ -438,7 +445,7 @@ export default function Home() {
                 </div>
                 {/* Right Column */}
                 <div className="col-span-1 flex flex-col items-center justify-center space-y-5">
-                  <div className="mt-7 flex h-64 w-64 items-center justify-center bg-gray-100 border-2 border-dashed border-gray-400 rounded-lg">
+                  <div className="mt-7 flex h-64 w-64 items-center justify-center rounded-lg border-2 border-dashed border-gray-400 bg-gray-100">
                     {createImageVariation.isPending ? (
                       <div className="flex flex-col items-center justify-center">
                         <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
@@ -450,14 +457,13 @@ export default function Home() {
                       <img
                         src={generatedVariation}
                         alt="Generated Variation"
-                      // style={{ maxWidth: '100%', maxHeight: '500px' }}
+                        // style={{ maxWidth: '100%', maxHeight: '500px' }}
                       />
                     ) : (
                       <span className="text-lg font-bold text-gray-400">
                         Generated Variation
                       </span>
                     )}
-
                   </div>
                   <div className="flex w-full justify-center">
                     <Button
@@ -480,9 +486,12 @@ export default function Home() {
                 {/* Left Column */}
                 <div className="col-span-1 space-y-2">
                   <CardHeader>
-                    <CardTitle className="text-2xl">Neural Style Transfer</CardTitle>
+                    <CardTitle className="text-2xl">
+                      Neural Style Transfer
+                    </CardTitle>
                     <CardDescription className="text-lg">
-                      Enter two images. One of your content and another of a style you would like to apply to your content.
+                      Enter two images. One of your content and another of a
+                      style you would like to apply to your content.
                     </CardDescription>
                   </CardHeader>
                   <div className="ml-6 space-y-1">
@@ -495,7 +504,7 @@ export default function Home() {
                       defaultValue="Project 1"
                     />
                   </div>
-                  <div className="ml-6 space-y-1 flex flex-row">
+                  <div className="ml-6 flex flex-row space-y-1">
                     <div className="mr-6">
                       <Label htmlFor="content-upload" className="text-base">
                         Upload Content Image
@@ -539,7 +548,7 @@ export default function Home() {
                     </div>
                   </div>
                   <CardFooter className="">
-                    <Button className="text-base mt-4">Transfer Style</Button>
+                    <Button className="mt-4 text-base">Transfer Style</Button>
                     {/* Generate Image */}
                     {/* <Button
                       className="mt-4 text-base"
@@ -557,7 +566,7 @@ export default function Home() {
                 </div>
                 {/* Right Column */}
                 <div className="col-span-1 flex flex-col items-center justify-center space-y-5">
-                  <div className="mt-7 flex h-64 w-64 items-center justify-center bg-gray-100 border-2 border-dashed border-gray-400 rounded-lg">
+                  <div className="mt-7 flex h-64 w-64 items-center justify-center rounded-lg border-2 border-dashed border-gray-400 bg-gray-100">
                     {/* <span className="text-lg font-bold text-gray-300">Generated Image</span> */}
                     {/* {generateImage.isPending ? (
                       <div className="flex flex-col items-center justify-center">
@@ -592,7 +601,6 @@ export default function Home() {
               </CardContent>
             </Card>
           </TabsContent>
-
         </Tabs>
 
         {/* Download/Survey Card */}
@@ -734,13 +742,16 @@ export default function Home() {
               </div>
               <CardContent>
                 <CardHeader>
-                  <CardTitle >Past Prompts</CardTitle>
+                  <CardTitle>Past Prompts</CardTitle>
                   <CardDescription className="text-lg">
                     Here you can view your previous prompts.
                   </CardDescription>
                 </CardHeader>
-                <div className="mr-6 ml-6">
-                  <SessionDropDownMenu hasSession={!!session} sessionData={session} />
+                <div className="ml-6 mr-6">
+                  <SessionDropDownMenu
+                    hasSession={!!session}
+                    sessionData={session}
+                  />
                   {session ? (
                     <>
                       <div>Past Prompts for: {session.user.name}</div>
@@ -748,10 +759,10 @@ export default function Home() {
                     </>
                   ) : (
                     <div>
-                      <div>Login to save your work
+                      <div>
+                        Login to save your work
                         <SignInButton className="ml-4" hasSession={!!session} />
                       </div>
-
                     </div>
                   )}
                 </div>
@@ -780,14 +791,20 @@ export default function Home() {
                     Here you can view your past created images.
                   </CardDescription>
                 </CardHeader>
-                <div className="grid grid-cols-4 gap-4 mt-4">
-                  {[...Array(8)].map((_, index) => (
-                    <div key={index} className="flex items-center justify-center h-32 bg-gray-200 border border-gray-300">
+                <div className="mt-4 grid grid-cols-4 gap-4">
+                  {Array.from({ length: 8 }, (_, index) => (
+                    <div
+                      key={index}
+                      className="flex h-32 items-center justify-center border border-gray-300 bg-gray-200"
+                    >
                       <span className="text-gray-500">No Image</span>
                     </div>
                   ))}
                 </div>
-                <SessionDropDownMenu hasSession={!!session} sessionData={session} />
+                <SessionDropDownMenu
+                  hasSession={!!session}
+                  sessionData={session}
+                />
                 {session ? (
                   <>
                     <div className="mt-3">Images for: {session.user.name}</div>
@@ -795,22 +812,17 @@ export default function Home() {
                   </>
                 ) : (
                   <div>
-                    <div className="mt-3">Login to save your work
+                    <div className="mt-3">
+                      Login to save your work
                       <SignInButton className="ml-4" hasSession={!!session} />
                     </div>
-
                   </div>
                 )}
               </CardContent>
             </Card>
           </div>
         )}
-
-
-
-
-
       </div>
-    </main >
+    </main>
   );
 }
