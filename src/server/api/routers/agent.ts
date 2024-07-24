@@ -86,13 +86,41 @@ export const agentRouter = createTRPCRouter({
   createImageVariation: publicProcedure
     .input(createImageVariationSchema)
     .mutation(async ({ ctx, input }) => {
-      // simulate a slow db call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      return TEST_BASE_64;
+      // const { guidance_prompt, project_title, user_id, input_image } = input;
+
+      const url = `${BASE_URL}/sdm/api/v2/create/variations`;
+
+      // const baseUrl = `${BASE_URL}/sdm/api/v2/create/variations`;
+      // const queryParams = `?project_title=${encodeURIComponent(guidance_prompt)}&prompt=${encodeURIComponent(project_title)}&user_id=${user_id}`;
+      // const url = `${baseUrl}${queryParams}`;
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(input),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error: Status: ${response.status}`);
+      }
+      //correct return type??
+      const varData: string = await response.text();
+      return varData;
     }),
 
   listPrompts: publicProcedure.query(({ ctx }) => {
     return TEST_PROMPT_DATA;
+  }),
+
+  listGenerations: publicProcedure.query(async ({ ctx }) => {
+    const response = await fetch(`${BASE_URL}/sdm/api/v2/list/image/generations/1`);
+    if (!response.ok) {
+      throw new Error(`Error: Status: ${response.status}`);
+    }
+    const data = await response.text();
+    return data;
   }),
 
   demoAuth: publicProcedure.query(async ({ ctx }) => {

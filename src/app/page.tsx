@@ -1,4 +1,5 @@
 "use client";
+import { create } from "domain";
 import { Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
@@ -33,33 +34,64 @@ export default function Home() {
     },
     onError: (error) => {
       console.error("Error generating image:", error);
+      setGeneratedImage("test");
     },
   });
 
   //image generate
   const [generatedImage, setGeneratedImage] = useState<string>("");
+  const defaultImagePath =
+    "/img/stable-diffusion-xl--f7d3df13d07a4c4abe50690e4a994336.png";
   const handleGenerateImage = async () => {
-    //   await generateImage.mutateAsync({
-    //     project_title: projectName,
-    //     prompt: prompt,
-    //     user_id: 1,
-    //   });
-    // };
     try {
-      await generateImage.mutateAsync({
+      const imageData = await generateImage.mutateAsync({
         project_title: projectName,
         prompt: prompt,
         user_id: 1,
       });
+      setGeneratedImage(imageData);
     } catch (error) {
-      console.error('Failed to generate image:', error);
+      console.error("Failed to generate image:", error);
+      setGeneratedImage(defaultImagePath);
+    }
+
+    //placeholder
+    // setGeneratedImage(defaultImagePath);
+  };
+
+  const createImageVariation = api.agent.createImageVariation.useMutation({
+    onSuccess: (varData) => {
+      console.log("Image variation created successfully");
+      setGeneratedVariation(varData);
+    },
+    onError: (error) => {
+      console.error("Error creating image variation:", error);
+      setGeneratedVariation("test");
+    },
+  });
+  const [generatedVariation, setGeneratedVariation] = useState<string>("");
+  const [projectName2, setProjectName2] = useState<string>("Bag Design Ideas");
+  const [guidancePrompt, setGuidancePrompt] = useState<string>(
+    "Design a bag with this pattern",
+  );
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const image = selectedImage ?? defaultImagePath;
+  const handleCreateImageVariation = async () => {
+    try {
+      const varData = await createImageVariation.mutateAsync({
+        guidance_prompt: guidancePrompt,
+        project_title: projectName2,
+        user_id: 1,
+        input_image: image, // Assuming you have the base64 string of the input image
+      });
+      setGeneratedVariation(varData);
+    } catch (error) {
+      console.error("Failed to create image variation:", error);
+      setGeneratedVariation(defaultImagePath);
     }
   };
 
-
   //File Upload
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -67,9 +99,23 @@ export default function Home() {
     }
   };
 
+  //past prompts
+  const fetchGenerations = async () => {
+    try {
+      // const data = await trpc.query('listGenerations');
+      // setGenerations(data);
+    } catch (error) {
+      console.error("Error fetching generations:", error);
+    }
+  };
+
   // NST file uplaod
-  const [selectedContentImage, setSelectedContentImage] = useState<string | null>(null);
-  const [selectedStyleImage, setSelectedStyleImage] = useState<string | null>(null);
+  const [selectedContentImage, setSelectedContentImage] = useState<
+    string | null
+  >(null);
+  const [selectedStyleImage, setSelectedStyleImage] = useState<string | null>(
+    null,
+  );
 
   const handleContentImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -93,12 +139,26 @@ export default function Home() {
     setShowDownloadCard(true);
     setShowSurveyDownload(false);
   };
+
+  //Past Prompts card
+  const [showPastPrompts, setShowPastPrompts] = useState(false);
+
+  const handlePastPrompts = () => {
+    setShowPastPrompts(true);
+  };
+
+  //Image History card
+  const [showImageHistory, setshowImageHistory] = useState(false);
+
+  const handleImageHistory = () => {
+    setshowImageHistory(true);
+  };
+
   const handleCloseCard = () => {
     setShowDownloadCard(false);
+    setShowPastPrompts(false);
+    setshowImageHistory(false);
   };
-  // const handleSurveyDownloadClick = () => {
-  //   setShowSurveyDownload(true);
-  // };
 
   const onSubmit = (data: unknown) => {
     console.log(data);
@@ -148,13 +208,12 @@ export default function Home() {
     //setShowDownloadCard(false);
   };
 
-
   const { data: session } = useSession();
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#ffffff] to-[#e5e7eb] text-black">
       {/* Menu */}
-      <div className="fixed left-0 right-0 top-0 z-50 mb-5 flex w-full items-center justify-between bg-white px-4 py-2 shadow-md">
+      <div className="z-100 fixed left-0 right-0 top-0 mb-5 flex w-full items-center justify-between bg-white px-4 py-2 shadow-md">
         <div className="flex items-center space-x-4">
           {/* Profile Pic and info */}
           <SignInButton hasSession={!!session} />
@@ -167,19 +226,56 @@ export default function Home() {
           </span>
         </div>
         <div className="flex space-x-4">
-          <Button className="text-sm-black rounded-lg bg-gray-200 px-3 py-1 hover:bg-gray-300">
-            Prompt History
-          </Button>
-          <Button className="text-sm-black rounded-lg bg-gray-200 px-3 py-1 hover:bg-gray-300">
-            Image Variations
-          </Button>
-          <Button className="text-sm-black rounded-lg bg-gray-200 px-3 py-1 hover:bg-gray-300">
-            Image Descriptions
-          </Button>
+          <HoverCard>
+            <HoverCardTrigger asChild>
+              <Button
+                onClick={handlePastPrompts}
+                className="text-sm-black rounded-lg bg-gray-200 px-3 py-1 hover:bg-gray-300"
+              >
+                Prompt History
+              </Button>
+            </HoverCardTrigger>
+            <HoverCardContent>
+              <p className="text-center text-sm">
+                View your past generation requests
+              </p>
+            </HoverCardContent>
+          </HoverCard>
+
+          <HoverCard>
+            <HoverCardTrigger asChild>
+              <Button
+                onClick={handleImageHistory}
+                className="text-sm-black rounded-lg bg-gray-200 px-3 py-1 hover:bg-gray-300"
+              >
+                Image Variations
+              </Button>
+            </HoverCardTrigger>
+            <HoverCardContent>
+              <p className="text-center text-sm">
+                View images you have created
+              </p>
+            </HoverCardContent>
+          </HoverCard>
+
+          <HoverCard>
+            <HoverCardTrigger asChild>
+              <Button className="text-sm-black rounded-lg bg-gray-200 px-3 py-1 hover:bg-gray-300">
+                Image Descriptions
+              </Button>
+            </HoverCardTrigger>
+            <HoverCardContent>
+              <p className="text-center text-sm">
+                View image descriptions of past creations
+              </p>
+            </HoverCardContent>
+          </HoverCard>
         </div>
       </div>
-      <h1 className="mt-16 md:mt-16 text-5xl font-bold">Artisanal&apos;s AI Agent</h1>
-      <div className="container flex flex-col h-[calc(100%-5rem)] items-center justify-center gap-12 px-4 py-12">
+      <h1 className="mt-16 text-5xl font-bold md:mt-16">
+        Artisanal&apos;s AI Agent
+      </h1>
+      <div className="container flex h-[calc(100%-5rem)] flex-col items-center justify-center gap-12 px-4 py-12">
         <Tabs defaultValue="generate" className="h-[auto] w-[90%]">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="generate">Generate Image</TabsTrigger>
@@ -208,6 +304,7 @@ export default function Home() {
                       id="name"
                       className="text-base font-light italic text-gray-500"
                       defaultValue="Jacket Design Ideas"
+                      onChange={(e) => setProjectName(e.target.value)}
                     />
                   </div>
                   <div className="mb-2 ml-6 space-y-1">
@@ -218,6 +315,7 @@ export default function Home() {
                       id="username"
                       className="text-base font-light italic text-gray-500"
                       defaultValue="An image of a denim jacket with floral embroidery"
+                      onChange={(e) => setPrompt(e.target.value)}
                     />
                   </div>
                   <CardFooter className="">
@@ -235,21 +333,11 @@ export default function Home() {
                         ? "Generating..."
                         : "Generate Image"}
                     </Button>
-
-                    {generatedImage && (
-                      <div>
-                        <h2>Generated Image</h2>
-                        {/* <img
-                          src={`data:image/jpeg;base64,${generatedImage}`}
-                          alt="Generated Image"
-                        /> */}
-                      </div>
-                    )}
                   </CardFooter>
                 </div>
                 {/* Right Column */}
                 <div className="col-span-1 flex flex-col items-center justify-center space-y-5">
-                  <div className="mt-7 flex h-64 w-64 items-center justify-center bg-gray-100 border-2 border-dashed border-gray-400 rounded-lg">
+                  <div className="mt-7 flex h-64 w-64 items-center justify-center rounded-lg border-2 border-dashed border-gray-400 bg-gray-100">
                     {/* <span className="text-lg font-bold text-gray-300">Generated Image</span> */}
                     {generateImage.isPending ? (
                       <div className="flex flex-col items-center justify-center">
@@ -260,9 +348,9 @@ export default function Home() {
                       </div>
                     ) : generatedImage ? (
                       <img
-                        className="h-full w-full object-cover rounded-lg"
-                        src={`data:image/jpeg;base64,${generatedImage}`}
+                        src={generatedImage}
                         alt="Generated Image"
+                        // style={{ maxWidth: '100%', maxHeight: '500px' }}
                       />
                     ) : (
                       <span className="text-lg font-bold text-gray-400">
@@ -270,7 +358,6 @@ export default function Home() {
                       </span>
                     )}
                   </div>
-                  {/* <div className="flex justify-end w-full mt-5 mr-6"> */}
                   <div className="mt-5 flex w-full justify-center">
                     <Button
                       className="#ffffff-text-thin flex space-x-2"
@@ -300,23 +387,25 @@ export default function Home() {
                     </CardDescription>
                   </CardHeader>
                   <div className="ml-6 space-y-1">
-                    <Label htmlFor="name" className="text-base">
+                    <Label htmlFor="project_name" className="text-base">
                       Project Name
                     </Label>
                     <Input
                       id="name"
                       className="text-base font-light italic text-gray-500"
                       defaultValue="Bag Design Ideas"
+                      onChange={(e) => setProjectName2(e.target.value)}
                     />
                   </div>
                   <div className="ml-6 space-y-1">
-                    <Label htmlFor="username" className="text-base">
+                    <Label htmlFor="guiding_prompt" className="text-base">
                       Guiding Prompt
                     </Label>
                     <Input
                       id="username"
                       className="text-base font-light italic text-gray-500"
                       defaultValue="Design a bag with this pattern"
+                      onChange={(e) => setGuidancePrompt(e.target.value)}
                     />
                   </div>
                   <div className="ml-6 space-y-1">
@@ -340,29 +429,39 @@ export default function Home() {
                     )}
                   </div>
                   <CardFooter className="">
-                    <Button className="mt-3 text-base">Create Variation</Button>
+                    <Button
+                      className="mt-4 text-base"
+                      onClick={handleCreateImageVariation}
+                      disabled={createImageVariation.isPending}
+                    >
+                      {createImageVariation.isPending ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : null}
+                      {createImageVariation.isPending
+                        ? "Creating..."
+                        : "Create Variation"}
+                    </Button>
                   </CardFooter>
                 </div>
                 {/* Right Column */}
                 <div className="col-span-1 flex flex-col items-center justify-center space-y-5">
-                  <div className="mt-7 flex h-64 w-64 items-center justify-center bg-gray-100 border-2 border-dashed border-gray-400 rounded-lg">
-                    {/* <span className="text-lg font-bold">Generated Image</span> */}
-                    {generateImage.isPending ? (
+                  <div className="mt-7 flex h-64 w-64 items-center justify-center rounded-lg border-2 border-dashed border-gray-400 bg-gray-100">
+                    {createImageVariation.isPending ? (
                       <div className="flex flex-col items-center justify-center">
                         <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
                         <span className="mt-2 text-lg font-bold text-gray-400">
                           Loading Image...
                         </span>
                       </div>
-                    ) : generatedImage ? (
+                    ) : generatedVariation ? (
                       <img
-                        className="h-full w-full object-cover rounded-lg"
-                        src={`data:image/jpeg;base64,${generatedImage}`}
-                        alt="Generated Image"
+                        src={generatedVariation}
+                        alt="Generated Variation"
+                        // style={{ maxWidth: '100%', maxHeight: '500px' }}
                       />
                     ) : (
                       <span className="text-lg font-bold text-gray-400">
-                        Generated Image
+                        Generated Variation
                       </span>
                     )}
                   </div>
@@ -380,16 +479,19 @@ export default function Home() {
             </Card>
           </TabsContent>
 
-          {/*StyleTransfer Tab */}
+          {/*Style Transfer Tab */}
           <TabsContent value="style_transfer">
             <Card>
               <CardContent className="grid grid-cols-2 gap-4">
                 {/* Left Column */}
                 <div className="col-span-1 space-y-2">
                   <CardHeader>
-                    <CardTitle className="text-2xl">Neural Style Transfer</CardTitle>
+                    <CardTitle className="text-2xl">
+                      Neural Style Transfer
+                    </CardTitle>
                     <CardDescription className="text-lg">
-                      Enter two images. One of your content and another of a style you would like to apply to your content.
+                      Enter two images. One of your content and another of a
+                      style you would like to apply to your content.
                     </CardDescription>
                   </CardHeader>
                   <div className="ml-6 space-y-1">
@@ -402,7 +504,7 @@ export default function Home() {
                       defaultValue="Project 1"
                     />
                   </div>
-                  <div className="ml-6 space-y-1 flex flex-row">
+                  <div className="ml-6 flex flex-row space-y-1">
                     <div className="mr-6">
                       <Label htmlFor="content-upload" className="text-base">
                         Upload Content Image
@@ -446,9 +548,9 @@ export default function Home() {
                     </div>
                   </div>
                   <CardFooter className="">
-                    {/* <Button className="text-base mt-4">Generate Image</Button> */}
+                    <Button className="mt-4 text-base">Transfer Style</Button>
                     {/* Generate Image */}
-                    <Button
+                    {/* <Button
                       className="mt-4 text-base"
                       onClick={handleGenerateImage}
                       disabled={generateImage.isPending}
@@ -459,14 +561,14 @@ export default function Home() {
                       {generateImage.isPending
                         ? "Transfering..."
                         : "Transfer Style"}
-                    </Button>
+                    </Button> */}
                   </CardFooter>
                 </div>
                 {/* Right Column */}
                 <div className="col-span-1 flex flex-col items-center justify-center space-y-5">
-                  <div className="mt-7 flex h-64 w-64 items-center justify-center bg-gray-100 border-2 border-dashed border-gray-400 rounded-lg">
+                  <div className="mt-7 flex h-64 w-64 items-center justify-center rounded-lg border-2 border-dashed border-gray-400 bg-gray-100">
                     {/* <span className="text-lg font-bold text-gray-300">Generated Image</span> */}
-                    {generateImage.isPending ? (
+                    {/* {generateImage.isPending ? (
                       <div className="flex flex-col items-center justify-center">
                         <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
                         <span className="mt-2 text-lg font-bold text-gray-400">
@@ -483,7 +585,7 @@ export default function Home() {
                       <span className="text-lg font-bold text-gray-400">
                         Generated Image
                       </span>
-                    )}
+                    )} */}
                   </div>
                   {/* <div className="flex justify-end w-full mt-5 mr-6"> */}
                   <div className="mt-5 flex w-full justify-center">
@@ -499,13 +601,21 @@ export default function Home() {
               </CardContent>
             </Card>
           </TabsContent>
-
         </Tabs>
 
         {/* Download/Survey Card */}
         {showDownloadCard && (
           <div className="fixed bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center bg-gray-500 bg-opacity-50">
             <Card className="w-[60%] bg-white p-4">
+              {/* Close Button */}
+              <div className="flex justify-end">
+                <button
+                  onClick={handleCloseCard}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  &#x2715;
+                </button>
+              </div>
               <CardContent className="grid grid-cols-2 gap-4">
                 {/* Left Column */}
                 <div className="col-span-1 flex-col space-y-2">
@@ -616,7 +726,103 @@ export default function Home() {
             </Card>
           </div>
         )}
+
+        {/* Past Prompts Card */}
+        {showPastPrompts && (
+          <div className="fixed bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center bg-gray-500 bg-opacity-50">
+            <Card className="relative w-[60%] bg-white p-4">
+              {/* Close Button */}
+              <div className="flex justify-end">
+                <button
+                  onClick={handleCloseCard}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  &#x2715;
+                </button>
+              </div>
+              <CardContent>
+                <CardHeader>
+                  <CardTitle>Past Prompts</CardTitle>
+                  <CardDescription className="text-lg">
+                    Here you can view your previous prompts.
+                  </CardDescription>
+                </CardHeader>
+                <div className="ml-6 mr-6">
+                  <SessionDropDownMenu
+                    hasSession={!!session}
+                    sessionData={session}
+                  />
+                  {session ? (
+                    <>
+                      <div>Past Prompts for: {session.user.name}</div>
+                      {/* Render past prompts here */}
+                    </>
+                  ) : (
+                    <div>
+                      <div>
+                        Login to save your work
+                        <SignInButton className="ml-4" hasSession={!!session} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Image History Card */}
+        {showImageHistory && (
+          <div className="fixed bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center bg-gray-500 bg-opacity-50">
+            <Card className="relative w-[60%] bg-white p-4">
+              {/* Close Button */}
+              <div className="flex justify-end">
+                <button
+                  onClick={handleCloseCard}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  &#x2715;
+                </button>
+              </div>
+              <CardContent>
+                <CardHeader>
+                  <CardTitle>Image Variations</CardTitle>
+                  <CardDescription className="text-lg">
+                    Here you can view your past created images.
+                  </CardDescription>
+                </CardHeader>
+                <div className="mt-4 grid grid-cols-4 gap-4">
+                  {Array.from({ length: 8 }, (_, index) => (
+                    <div
+                      key={index}
+                      className="flex h-32 items-center justify-center border border-gray-300 bg-gray-200"
+                    >
+                      <span className="text-gray-500">No Image</span>
+                    </div>
+                  ))}
+                </div>
+                <SessionDropDownMenu
+                  hasSession={!!session}
+                  sessionData={session}
+                />
+                {session ? (
+                  <>
+                    <div className="mt-3">Images for: {session.user.name}</div>
+                    {/* Render past prompts here */}
+                  </>
+                ) : (
+                  <div>
+                    <div className="mt-3">
+                      Login to save your work
+                      <SignInButton className="ml-4" hasSession={!!session} />
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
-    </main >
+    </main>
   );
 }
