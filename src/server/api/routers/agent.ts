@@ -7,6 +7,8 @@ import {
   createImageVariationSchema,
   createSurveySchema,
   generateImageSchema,
+  regenerateImageSchema,
+  pastGenerationSchema,
 } from "~/types/agent";
 
 const BASE_URL = "http://35.1.114.178:8000";
@@ -72,6 +74,33 @@ export const agentRouter = createTRPCRouter({
       return imageData;
     }),
 
+  regenerateImage: publicProcedure
+    .input(regenerateImageSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { project_title, prompt, user_id, guidance_scale, negative_prompt } = input;
+
+      // const url = `${BASE_URL}/sdm/api/v2/generate/images`;
+
+      const baseUrl = `${BASE_URL}/sdm/api/v2/edit/generated/images`;
+      const queryParams = `?project_title=${encodeURIComponent(project_title)}&prompt=${encodeURIComponent(prompt)}&user_id=${user_id}&negative_prompt=${negative_prompt}&guidance_scale=${guidance_scale}`;
+      const url = `${baseUrl}${queryParams}`;
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(input),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error: Status: ${response.status}`);
+      }
+      //correct return type??
+      const imageData: string = await response.text();
+      return imageData;
+    }),
+
   createSurvey: publicProcedure
     .input(createSurveySchema)
     .mutation(async ({ ctx, input }) => {
@@ -119,8 +148,8 @@ export const agentRouter = createTRPCRouter({
     if (!response.ok) {
       throw new Error(`Error: Status: ${response.status}`);
     }
-    const data = await response.text();
-    return data;
+    const data: unknown = await response.json();
+    return pastGenerationSchema.parse(data);
   }),
 
   demoAuth: publicProcedure.query(async ({ ctx }) => {

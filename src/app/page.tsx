@@ -3,6 +3,8 @@ import { create } from "domain";
 import { Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
+import { useQuery } from 'react-query';
+// import { useState } from "react";
 import { CiImport } from "react-icons/ci";
 import { Button } from "~/components/ui/button";
 import {
@@ -25,6 +27,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { api } from "~/trpc/react";
 import { SessionDropDownMenu } from "./(auth)/_components/session-dropdown-menu";
 import { SignInButton } from "./(auth)/_components/sign-in-button";
+import { Slider } from "~/components/ui/slider"
+import { PastGenerations } from "~/types/agent";
+
+
 
 export default function Home() {
   const generateImage = api.agent.generateImage.useMutation({
@@ -54,11 +60,38 @@ export default function Home() {
       console.error("Failed to generate image:", error);
       setGeneratedImage(defaultImagePath);
     }
-
-    //placeholder
-    // setGeneratedImage(defaultImagePath);
   };
+  const [negativePrompt, setNegativePrompt] = useState<string>("low resolution, blurry image...");
+  const [regeneratedImage, setRegeneratedImage] = useState<string>("");
 
+  const regenerateImage = api.agent.regenerateImage.useMutation({
+    onSuccess: (imageData) => {
+      console.log("Image regenerated successfully");
+      setRegeneratedImage(imageData);
+    },
+    onError: (error) => {
+      console.error("Error regenerating image:", error);
+      // setRegeneratedImage(defaultImagePath);
+      setRegeneratedImage("test");
+
+    },
+  });
+
+  const handleRegenerateImage = async () => {
+    try {
+      const imageData = await regenerateImage.mutateAsync({
+        project_title: projectName,
+        prompt: prompt,
+        user_id: 1,
+        guidance_scale: guidanceScale,
+        negative_prompt: negativePrompt,
+      });
+      setRegeneratedImage(imageData)
+    } catch (error) {
+      console.error("Failed to regenerate image:", error);
+      setRegeneratedImage(defaultImagePath);
+    }
+  };
   const createImageVariation = api.agent.createImageVariation.useMutation({
     onSuccess: (varData) => {
       console.log("Image variation created successfully");
@@ -69,6 +102,7 @@ export default function Home() {
       setGeneratedVariation("test");
     },
   });
+
   const [generatedVariation, setGeneratedVariation] = useState<string>("");
   const [projectName2, setProjectName2] = useState<string>("Bag Design Ideas");
   const [guidancePrompt, setGuidancePrompt] = useState<string>(
@@ -99,13 +133,17 @@ export default function Home() {
     }
   };
 
-  //past prompts
-  const fetchGenerations = async () => {
+  //past generations
+  const [pastGenerations, setPastGenerations] = useState<PastGenerations>([]);
+  const fetchPastGenerations = async () => {
     try {
-      // const data = await trpc.query('listGenerations');
-      // setGenerations(data);
-    } catch (error) {
-      console.error("Error fetching generations:", error);
+      const result = await api.agent.listGenerations.useQuery();
+      if (result.data) {
+        setPastGenerations(result.data);
+      }
+    }
+    catch (error) {
+      console.error("Failed to list generations:", error);
     }
   };
 
@@ -135,29 +173,55 @@ export default function Home() {
   const [showDownloadCard, setShowDownloadCard] = useState(false);
   const [showSurveyDownload, setShowSurveyDownload] = useState(false);
 
-  const handleDownloadClick = () => {
-    setShowDownloadCard(true);
-    setShowSurveyDownload(false);
+  const handleDownloadClick = (infunc: string) => {
+    if (generatedImage) {
+      const link = document.createElement('a');
+      link.href = infunc;
+      link.download = infunc; // Use the provided filename
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      console.error('No image available for download.');
+    }
   };
 
   //Past Prompts card
-  const [showPastPrompts, setShowPastPrompts] = useState(false);
+  const [showPastGens, setShowPastGens] = useState(false);
 
-  const handlePastPrompts = () => {
-    setShowPastPrompts(true);
+  const handlePastGens = () => {
+    setShowPastGens(true);
   };
 
-  //Image History card
-  const [showImageHistory, setshowImageHistory] = useState(false);
+  //Image Variations card
+  const [showImageVars, setshowImageVars] = useState(false);
 
-  const handleImageHistory = () => {
-    setshowImageHistory(true);
+  const handleImageVars = () => {
+    setshowImageVars(true);
   };
+
+  //Regenerate Card
+  const [showRegenerate, setShowRegenerate] = useState(false);
+
+  const handleshowRegenerate = () => {
+    setShowRegenerate(true);
+  };
+
+  const [guidanceScale, setGuidanceScale] = useState<number>(8.3);
+
+  const handleSliderChange = (value: number[]) => {
+    console.log(value);
+    if (value.length > 0) {
+      setGuidanceScale(value[0]);
+    }
+  };
+
 
   const handleCloseCard = () => {
     setShowDownloadCard(false);
-    setShowPastPrompts(false);
-    setshowImageHistory(false);
+    setShowPastGens(false);
+    setshowImageVars(false);
+    setShowRegenerate(false);
   };
 
   const onSubmit = (data: unknown) => {
@@ -229,15 +293,15 @@ export default function Home() {
           <HoverCard>
             <HoverCardTrigger asChild>
               <Button
-                onClick={handlePastPrompts}
+                onClick={handlePastGens}
                 className="text-sm-black rounded-lg bg-gray-200 px-3 py-1 hover:bg-gray-300"
               >
-                Prompt History
+                Prompt Generations
               </Button>
             </HoverCardTrigger>
             <HoverCardContent>
               <p className="text-center text-sm">
-                View your past generation requests
+                View your past image generations here
               </p>
             </HoverCardContent>
           </HoverCard>
@@ -245,7 +309,7 @@ export default function Home() {
           <HoverCard>
             <HoverCardTrigger asChild>
               <Button
-                onClick={handleImageHistory}
+                onClick={handleImageVars}
                 className="text-sm-black rounded-lg bg-gray-200 px-3 py-1 hover:bg-gray-300"
               >
                 Image Variations
@@ -350,7 +414,7 @@ export default function Home() {
                       <img
                         src={generatedImage}
                         alt="Generated Image"
-                        // style={{ maxWidth: '100%', maxHeight: '500px' }}
+                      // style={{ maxWidth: '100%', maxHeight: '500px' }}
                       />
                     ) : (
                       <span className="text-lg font-bold text-gray-400">
@@ -360,16 +424,27 @@ export default function Home() {
                   </div>
                   <div className="mt-5 flex w-full justify-center">
                     <Button
-                      className="#ffffff-text-thin flex space-x-2"
-                      onClick={handleDownloadClick}
+                      className="#ffffff-text-thin flex space-x-2 mr-4"
+                      onClick={() => handleDownloadClick(generatedImage)}
+                      disabled={generateImage.isPending || !generatedImage}
                     >
                       <span>Download</span>
                       <CiImport className="text-xl" />
+                    </Button>
+
+                    <Button
+                      className="#ffffff-text-thin flex space-x-2"
+                      onClick={handleshowRegenerate}
+                    // disabled={generateImage.isPending || !generatedImage}
+                    >
+                      <span>Regenerate Image</span>
                     </Button>
                   </div>
                 </div>
               </CardContent>
             </Card>
+
+
           </TabsContent>
           {/* Create Variation Tab*/}
           <TabsContent value="variation">
@@ -457,7 +532,7 @@ export default function Home() {
                       <img
                         src={generatedVariation}
                         alt="Generated Variation"
-                        // style={{ maxWidth: '100%', maxHeight: '500px' }}
+                      // style={{ maxWidth: '100%', maxHeight: '500px' }}
                       />
                     ) : (
                       <span className="text-lg font-bold text-gray-400">
@@ -468,7 +543,8 @@ export default function Home() {
                   <div className="flex w-full justify-center">
                     <Button
                       className="#ffffff-text-thin flex space-x-2"
-                      onClick={handleDownloadClick}
+                      onClick={() => handleDownloadClick(generatedVariation)}
+                      disabled={createImageVariation.isPending || !generatedVariation}
                     >
                       <span>Download</span>
                       <CiImport className="text-xl" />
@@ -591,7 +667,7 @@ export default function Home() {
                   <div className="mt-5 flex w-full justify-center">
                     <Button
                       className="#ffffff-text-thin flex space-x-2"
-                      onClick={handleDownloadClick}
+                    // onClick={handleDownloadClick}
                     >
                       <span>Download</span>
                       <CiImport className="text-xl" />
@@ -707,6 +783,7 @@ export default function Home() {
                   <div className="mt-3 flex h-64 w-64 items-center justify-center bg-gray-200">
                     <span className="text-lg font-bold">Generated Image</span>
                   </div>
+
                   {showSurveyDownload && (
                     <div
                       className="mt-5 flex w-full justify-center"
@@ -728,7 +805,7 @@ export default function Home() {
         )}
 
         {/* Past Prompts Card */}
-        {showPastPrompts && (
+        {showPastGens && (
           <div className="fixed bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center bg-gray-500 bg-opacity-50">
             <Card className="relative w-[60%] bg-white p-4">
               {/* Close Button */}
@@ -754,8 +831,11 @@ export default function Home() {
                   />
                   {session ? (
                     <>
-                      <div>Past Prompts for: {session.user.name}</div>
-                      {/* Render past prompts here */}
+                      <div>Past Generations for: {session.user.name}</div>
+                      {/* Container for past prompts/images */}
+                      <div className="max-h-96 overflow-y-auto mt-4">
+                        {/* inside */}
+                      </div>
                     </>
                   ) : (
                     <div>
@@ -771,8 +851,9 @@ export default function Home() {
           </div>
         )}
 
-        {/* Image History Card */}
-        {showImageHistory && (
+
+        {/* Image Variations Card */}
+        {showImageVars && (
           <div className="fixed bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center bg-gray-500 bg-opacity-50">
             <Card className="relative w-[60%] bg-white p-4">
               {/* Close Button */}
@@ -788,7 +869,7 @@ export default function Home() {
                 <CardHeader>
                   <CardTitle>Image Variations</CardTitle>
                   <CardDescription className="text-lg">
-                    Here you can view your past created images.
+                    Here you can view your past created variations.
                   </CardDescription>
                 </CardHeader>
                 <div className="mt-4 grid grid-cols-4 gap-4">
@@ -822,7 +903,186 @@ export default function Home() {
             </Card>
           </div>
         )}
+
+        {/* Regenerate Image Card */}
+        {showRegenerate && (
+          <div className="fixed bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center bg-gray-500 bg-opacity-50">
+            <Card>
+              {/* Close Button */}
+              <div className="flex justify-end">
+                <button
+                  onClick={handleCloseCard}
+                  className="text-gray-500 hover:text-gray-700 mr-3 mt-1"
+                >
+                  &#x2715;
+                </button>
+              </div>
+              <CardContent className="grid grid-cols-2 gap-4">
+                {/* Left Column */}
+                <div className="col-span-1 space-y-2">
+                  <CardHeader>
+                    <CardTitle className="text-2xl">Regenerate Image</CardTitle>
+                    <CardDescription className="text-lg">
+                      Regenerate your image by providing a new negative prompt <br />
+                      and adjusting the guidance scale. This allows you to refine <br />
+                      the image output based on different constraints and preferences.<br />
+                    </CardDescription>
+
+                  </CardHeader>
+                  <div className="ml-6 space-y-1 mb-4">
+                    <Label className="text-base">
+                      Project Name :
+                      <span className="text-base font-light italic text-gray-500 ml-2">{projectName}</span>
+                    </Label>
+                  </div>
+                  <div className="ml-6 space-y-1 mb-4">
+                    <Label className="text-base">
+                      Previous Prompt
+                      <span className="text-base font-light italic text-gray-500 ml-2">{prompt}</span>
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-1 mb-4 ml-6">
+                    <Label className="text-base flex items-center">
+                      Negative Prompt
+                    </Label>
+                    <HoverCard>
+                      <HoverCardTrigger asChild>
+                        <Button
+                          className="w-6 h-6 p-0 flex items-center justify-center rounded-full border border-black bg-white text-black-700 text-xs font-semibold hover:bg-gray-200"
+                          aria-label="Information"
+                        >
+                          <span className="italic">i</span>
+                        </Button>
+                      </HoverCardTrigger>
+                      <HoverCardContent side="right" align="center">
+                        <p className="text-center text-sm">
+                          This parameter specifies what you don&apos;t want to see in the generated images. Use this to guide and correct parts of your previously generated image. <br /> Ex: remove blur, shade, etc...
+                        </p>
+                      </HoverCardContent>
+                    </HoverCard>
+                  </div>
+                  <div className="flex items-center spacse-x-1 mb-4 ml-6">
+                    <Input
+                      id="username"
+                      className="text-base font-light italic text-gray-500"
+                      defaultValue="Design a bag with this pattern"
+                      onChange={(e) => setNegativePrompt(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex items-center space-x-1 mb-4 ml-6">
+                    <Label className="text-base flex items-center">
+                      Guidance Scale: <span className="font-medium ml-1">{guidanceScale}</span>
+                    </Label>
+                    <HoverCard>
+                      <HoverCardTrigger asChild>
+                        <Button
+                          className="ml-2 w-6 h-6 p-0 flex items-center justify-center rounded-full border border-black bg-white text-black-700 text-xs font-semibold hover:bg-gray-200"
+                          aria-label="Information"
+                        >
+                          <span className="italic">i</span>
+                        </Button>
+                      </HoverCardTrigger>
+                      <HoverCardContent side="right" align="center">
+                        <p className="text-center text-sm">
+                          This parameter affects how much the prompt influences image generation. A lower value gives the model &quot;creativity&quot; to generate images that are more loosely related to the prompt.<br /> A higher guidance scale value pushes the model to follow the prompt more closely. <br /> 8.3 is the recommended value.
+                        </p>
+                      </HoverCardContent>
+                    </HoverCard>
+                  </div>
+                  <div className="flex items-center spacse-x-1 mb-4 ml-6">
+                    <Slider
+                      defaultValue={[guidanceScale]}
+                      max={10}
+                      step={0.1}
+                      onValueChange={handleSliderChange}
+                      className="mt-2"
+                    />
+                  </div>
+
+                  <CardFooter className="">
+                    {/* <Button className="text-base mt-4">Generate Image</Button> */}
+                    {/* Generate Image */}
+                    <Button
+                      className="mt-4 text-base"
+                      onClick={handleRegenerateImage}
+                      disabled={regenerateImage.isPending}
+                    >
+                      {regenerateImage.isPending ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : null}
+                      {regenerateImage.isPending
+                        ? "Regenerating..."
+                        : "Regenerate Image"}
+                    </Button>
+                  </CardFooter>
+                </div>
+                {/* Right Column */}
+                <div className="col-span-1 flex flex-col items-center justify-center space-y-5">
+                  {/* previous image */}
+                  <Label className="text-base">
+                    Previous Image
+                  </Label>
+                  <div className="mt-7 flex h-64 w-64 items-center justify-center rounded-lg border-2 border-dashed border-gray-400 bg-gray-100">
+                    {/* <span className="text-lg font-bold text-gray-300">Generated Image</span> */}
+                    {generateImage.isPending ? (
+                      <div className="flex flex-col items-center justify-center">
+                        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                        <span className="mt-2 text-lg font-bold text-gray-400">
+                          Loading Image...
+                        </span>
+                      </div>
+                    ) : generatedImage ? (
+                      <img
+                        src={generatedImage}
+                        alt="Generated Image"
+                      // style={{ maxWidth: '100%', maxHeight: '500px' }}
+                      />
+                    ) : (
+                      <span className="text-lg font-bold text-gray-400">
+                        Generated Image
+                      </span>
+                    )}
+                  </div>
+                  {/* new image */}
+                  <Label className="text-base">
+                    Regenerated Image
+                  </Label>
+                  <div className="mt-7 flex h-64 w-64 items-center justify-center rounded-lg border-2 border-dashed border-gray-400 bg-gray-100">
+                    {/* <span className="text-lg font-bold text-gray-300">Generated Image</span> */}
+                    {regenerateImage.isPending ? (
+                      <div className="flex flex-col items-center justify-center">
+                        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                        <span className="mt-2 text-lg font-bold text-gray-400">
+                          Loading Image...
+                        </span>
+                      </div>
+                    ) : regenerateImage ? (
+                      <img
+                        src={regeneratedImage}
+                        alt="Regenerated Image"
+                      />
+                    ) : (
+                      <span className="text-lg font-bold text-gray-400">
+                        Regenerated Image
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-5 flex w-full justify-center">
+                    <Button
+                      className="#ffffff-text-thin flex space-x-2 mr-4"
+                      onClick={handleDownloadClick(regeneratedImage)}
+                    >
+                      <span>Download</span>
+                      <CiImport className="text-xl" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+          </div>
+        )}
       </div>
-    </main>
+    </main >
   );
 }

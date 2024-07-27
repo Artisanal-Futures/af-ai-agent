@@ -9,6 +9,14 @@ export const generateImageSchema = z.object({
   user_id: z.number(),
 });
 
+export const regenerateImageSchema = z.object({
+  project_title: z.string(),
+  prompt: z.string(),
+  user_id: z.number(),
+  guidance_scale: z.number(),
+  negative_prompt: z.string(),
+});
+
 export const createSurveySchema = z.object({
   level_of_satisfaction: z.string(),
   direct_use_in_fabrication: z.boolean().default(false),
@@ -28,6 +36,21 @@ export const listPromptsSchema = z.object({
   image: z.string(),
 });
 
+export const pastGenerationSchema = z.object({
+  id: z.number(),
+  user_id: z.number(),
+  project_title: z.string(),
+  prompt: z.string(),
+  image_url: z.string(),
+  generation_time: z.number(),
+  generation_date: z.string(),
+  user: z.any().nullable(),
+});
+
 export type GenerateImageInput = z.infer<typeof generateImageSchema>;
 export type CreateImageInput = z.infer<typeof createImageVariationSchema>;
+export const pastGenerationsSchema = z.array(pastGenerationSchema);
+export type PastGenerations = z.infer<typeof pastGenerationsSchema>;
+
+
 
