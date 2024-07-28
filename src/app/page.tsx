@@ -133,19 +133,28 @@ export default function Home() {
     }
   };
 
+  //for styles card
+  // const [uploadedStyles, setUploadedStyles] = useState([]);
+  const [styleName, setStyleName] = useState<string>("");
+
+  const handleStyleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setStyleName(event.target.value);
+  };
+
   //past generations
   const [pastGenerations, setPastGenerations] = useState<PastGenerations>([]);
+  //how to process:
   const fetchPastGenerations = async () => {
     try {
       const result = await api.agent.listGenerations.useQuery();
       if (result.data) {
         setPastGenerations(result.data);
       }
-    }
-    catch (error) {
-      console.error("Failed to list generations:", error);
+    } catch (error) {
+      console.error("Failed to fetch past generations:", error);
     }
   };
+
 
   // NST file uplaod
   const [selectedContentImage, setSelectedContentImage] = useState<
@@ -172,17 +181,16 @@ export default function Home() {
   //Survey
   const [showDownloadCard, setShowDownloadCard] = useState(false);
   const [showSurveyDownload, setShowSurveyDownload] = useState(false);
-
-  const handleDownloadClick = (infunc: string) => {
-    if (generatedImage) {
+  const handleDownloadClick = (imageUrl: string) => {
+    if (imageUrl) {
       const link = document.createElement('a');
-      link.href = infunc;
-      link.download = infunc; // Use the provided filename
+      link.href = imageUrl;
+      link.download = imageUrl.split('/').pop() ?? "test";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     } else {
-      console.error('No image available for download.');
+      console.error('No URL provided for download.');
     }
   };
 
@@ -212,8 +220,30 @@ export default function Home() {
   const handleSliderChange = (value: number[]) => {
     console.log(value);
     if (value.length > 0) {
-      setGuidanceScale(value[0]);
+      setGuidanceScale(value[0] ?? 0);
     }
+  };
+
+  //Your Styles card
+  const [showStylesCard, setShowStylesCard] = useState(false);
+
+  const handleStylesCard = () => {
+    setShowStylesCard(true);
+  };
+
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const [uploadedImages, setUploadedImages] = useState<{ src: string; name: string }[]>([]);
+
+  const handleStyleUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files ?? []);
+    const newSelectedImages = files.map(file => URL.createObjectURL(file));
+    setSelectedImages(newSelectedImages);
+
+    const newUploadedImages = files.map(file => ({
+      src: URL.createObjectURL(file),
+      name: file.name,
+    }));
+    setUploadedImages([...newUploadedImages]);
   };
 
 
@@ -222,12 +252,9 @@ export default function Home() {
     setShowPastGens(false);
     setshowImageVars(false);
     setShowRegenerate(false);
+    setShowStylesCard(false);
   };
 
-  const onSubmit = (data: unknown) => {
-    console.log(data);
-    setShowDownloadCard(true);
-  };
 
   const [showLink, setShowLink] = useState(false);
 
@@ -296,7 +323,7 @@ export default function Home() {
                 onClick={handlePastGens}
                 className="text-sm-black rounded-lg bg-gray-200 px-3 py-1 hover:bg-gray-300"
               >
-                Prompt Generations
+                Past Generations
               </Button>
             </HoverCardTrigger>
             <HoverCardContent>
@@ -324,13 +351,13 @@ export default function Home() {
 
           <HoverCard>
             <HoverCardTrigger asChild>
-              <Button className="text-sm-black rounded-lg bg-gray-200 px-3 py-1 hover:bg-gray-300">
-                Image Descriptions
+              <Button onClick={handleStylesCard} className="text-sm-black rounded-lg bg-gray-200 px-3 py-1 hover:bg-gray-300">
+                Your Styles
               </Button>
             </HoverCardTrigger>
             <HoverCardContent>
               <p className="text-center text-sm">
-                View image descriptions of past creations
+                Upload and save styles to use in style transfers
               </p>
             </HoverCardContent>
           </HoverCard>
@@ -435,7 +462,7 @@ export default function Home() {
                     <Button
                       className="#ffffff-text-thin flex space-x-2"
                       onClick={handleshowRegenerate}
-                    // disabled={generateImage.isPending || !generatedImage}
+                      disabled={generateImage.isPending || !generatedImage}
                     >
                       <span>Regenerate Image</span>
                     </Button>
@@ -825,16 +852,36 @@ export default function Home() {
                   </CardDescription>
                 </CardHeader>
                 <div className="ml-6 mr-6">
-                  <SessionDropDownMenu
-                    hasSession={!!session}
-                    sessionData={session}
-                  />
+                  <SessionDropDownMenu hasSession={!!session} sessionData={session} />
                   {session ? (
                     <>
                       <div>Past Generations for: {session.user.name}</div>
                       {/* Container for past prompts/images */}
                       <div className="max-h-96 overflow-y-auto mt-4">
-                        {/* inside */}
+                        {pastGenerations.length > 0 ? (
+                          <ul>
+                            {pastGenerations.map((generation, index) => (
+                              <li key={index} className="mb-4">
+                                <div className="flex flex-col md:flex-row items-start md:items-center">
+                                  <img
+                                    src={generation.image_url}
+                                    alt={generation.project_title}
+                                    className="w-32 h-32 mr-4 mb-4 md:mb-0"
+                                  />
+                                  <div>
+                                    <h3 className="text-lg font-semibold">{generation.project_title}</h3>
+                                    <p>{generation.prompt}</p>
+                                    <p className="text-sm text-gray-500">
+                                      Generated on: {new Date(generation.generation_date).toLocaleString()}
+                                    </p>
+                                  </div>
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <div>No past generations available.</div>
+                        )}
                       </div>
                     </>
                   ) : (
@@ -851,11 +898,9 @@ export default function Home() {
           </div>
         )}
 
-
-        {/* Image Variations Card */}
         {showImageVars && (
           <div className="fixed bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center bg-gray-500 bg-opacity-50">
-            <Card className="relative w-[60%] bg-white p-4">
+            <Card className="relative w-[80%] bg-white p-4">
               {/* Close Button */}
               <div className="flex justify-end">
                 <button
@@ -872,24 +917,76 @@ export default function Home() {
                     Here you can view your past created variations.
                   </CardDescription>
                 </CardHeader>
-                <div className="mt-4 grid grid-cols-4 gap-4">
-                  {Array.from({ length: 8 }, (_, index) => (
-                    <div
-                      key={index}
-                      className="flex h-32 items-center justify-center border border-gray-300 bg-gray-200"
-                    >
-                      <span className="text-gray-500">No Image</span>
+                <div className="mt-4 ml-6 grid grid-cols-1 gap-4">
+                  {/* Column Labels */}
+                  <div className="grid grid-cols-3 gap-4 border-b border-gray-300 pb-2">
+                    <div className="text-lg font-semibold">Project</div>
+                    <div className="text-lg font-semibold">Base</div>
+                    <div className="text-lg font-semibold">Result</div>
+                  </div>
+                  {pastGenerations.length > 0 ? (
+                    pastGenerations.map((generation, index) => (
+                      <div
+                        key={index}
+                        className="grid grid-cols-3 gap-4 border border-gray-300 bg-gray-200 p-4"
+                      >
+                        <div className="flex flex-col justify-center">
+                          <h3 className="text-lg font-semibold">{generation.project_title}</h3>
+                          <p>{generation.prompt}</p>
+                          <p className="text-sm text-gray-500">
+                            Generated on: {new Date(generation.generation_date).toLocaleString()}
+                          </p>
+                        </div>
+                        <div className="flex items-center justify-center">
+                          <div className="mt-7 flex h-64 w-64 items-center justify-center rounded-lg border-2 border-dashed border-gray-400 bg-gray-100">
+                            {generation.input_image_url ? (
+                              <img
+                                src={generation.input_image_url}
+                                alt={`Base: ${generation.project_title}`}
+                                className="object-cover h-full w-full"
+                              />
+                            ) : (
+                              <span className="text-gray-500">No Base Image</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-center">
+                          <div className="mt-7 flex h-64 w-64 items-center justify-center rounded-lg border-2 border-dashed border-gray-400 bg-gray-100">
+                            {generation.output_image_url ? (
+                              <img
+                                src={generation.output_image_url}
+                                alt={`Variation: ${generation.project_title}`}
+                                className="object-cover h-full w-full"
+                              />
+                            ) : (
+                              <span className="text-gray-500">No Result Image</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="grid grid-cols-3 gap-4 p-4">
+                      <div className="flex flex-col items-center justify-center">
+                        <span className="text-gray-500">No Project</span>
+                      </div>
+                      <div className="flex items-center justify-center">
+                        <div className="mt-7 flex h-64 w-64 items-center justify-center rounded-lg border-2 border-dashed border-gray-400 bg-gray-100">
+                          <span className="text-gray-500">No Base Image</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-center">
+                        <div className="mt-7 flex h-64 w-64 items-center justify-center rounded-lg border-2 border-dashed border-gray-400 bg-gray-100">
+                          <span className="text-gray-500">No Result Image</span>
+                        </div>
+                      </div>
                     </div>
-                  ))}
+                  )}
                 </div>
-                <SessionDropDownMenu
-                  hasSession={!!session}
-                  sessionData={session}
-                />
+                <SessionDropDownMenu hasSession={!!session} sessionData={session} />
                 {session ? (
                   <>
                     <div className="mt-3">Images for: {session.user.name}</div>
-                    {/* Render past prompts here */}
                   </>
                 ) : (
                   <div>
@@ -903,6 +1000,71 @@ export default function Home() {
             </Card>
           </div>
         )}
+
+
+        {/* Your Styles Card */}
+        {showStylesCard && (
+          <div className="fixed bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center bg-gray-500 bg-opacity-50">
+            <Card className="relative w-[60%] bg-white p-4">
+              {/* Close Button */}
+              <div className="flex justify-end">
+                <button onClick={handleCloseCard} className="text-gray-500 hover:text-gray-700">
+                  &#x2715;
+                </button>
+              </div>
+              <CardContent>
+                <CardHeader>
+                  <CardTitle>Your Styles</CardTitle>
+                  <CardDescription className="text-lg">
+                    Upload style images to use in style transfers.
+                  </CardDescription>
+                </CardHeader>
+
+                {/* Upload Image and Style Name */}
+                <div className="ml-6 space-y-1">
+                  <Label htmlFor="file-upload" className="text-base">
+                    Upload Image
+                  </Label>
+                  <Input
+                    id="file-upload"
+                    type="file"
+                    className="text-base font-light italic text-gray-500 hover:underline"
+                    onChange={handleStyleUpload}
+                    multiple
+                  />
+                  {selectedImages.length > 0 && (
+                    <div className="mt-2 grid grid-cols-3 gap-4">
+                      {selectedImages.map((image, index) => (
+                        <img
+                          key={index}
+                          src={image}
+                          alt={`Selected ${index}`}
+                          className="h-32 w-32 object-cover"
+                        />
+                      ))}
+                    </div>
+                  )}
+                  <Button onClick={() => setStyleName('')}>Upload Image</Button>
+                </div>
+
+                {/* Display Uploaded Images */}
+                <div className="mt-4 grid grid-cols-4 gap-4">
+                  {uploadedImages.map((image, index) => (
+                    <div key={index} className="flex flex-col items-center">
+                      <img
+                        src={image.src}
+                        alt={image.name}
+                        className="h-32 w-32 object-cover border border-gray-300"
+                      />
+                      <span className="mt-2 text-center">{image.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
 
         {/* Regenerate Image Card */}
         {showRegenerate && (
@@ -1070,7 +1232,8 @@ export default function Home() {
                   <div className="mt-5 flex w-full justify-center">
                     <Button
                       className="#ffffff-text-thin flex space-x-2 mr-4"
-                      onClick={handleDownloadClick(regeneratedImage)}
+                      onClick={() => handleDownloadClick(regeneratedImage)}
+                      disabled={regenerateImage.isPending || !regenerateImage}
                     >
                       <span>Download</span>
                       <CiImport className="text-xl" />

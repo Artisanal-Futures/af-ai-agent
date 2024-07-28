@@ -115,13 +115,13 @@ export const agentRouter = createTRPCRouter({
   createImageVariation: publicProcedure
     .input(createImageVariationSchema)
     .mutation(async ({ ctx, input }) => {
-      // const { guidance_prompt, project_title, user_id, input_image } = input;
+      const { guidance_prompt, project_title, user_id } = input;
 
-      const url = `${BASE_URL}/sdm/api/v2/create/variations`;
+      // const url = `${BASE_URL}/sdm/api/v2/create/variations`;
 
-      // const baseUrl = `${BASE_URL}/sdm/api/v2/create/variations`;
-      // const queryParams = `?project_title=${encodeURIComponent(guidance_prompt)}&prompt=${encodeURIComponent(project_title)}&user_id=${user_id}`;
-      // const url = `${baseUrl}${queryParams}`;
+      const baseUrl = `${BASE_URL}/sdm/api/v2/create/variations`;
+      const queryParams = `?project_title=${encodeURIComponent(guidance_prompt)}&prompt=${encodeURIComponent(project_title)}&user_id=${user_id}`;
+      const url = `${baseUrl}${queryParams}`;
 
       const response = await fetch(url, {
         method: "POST",
@@ -143,14 +143,50 @@ export const agentRouter = createTRPCRouter({
     return TEST_PROMPT_DATA;
   }),
 
+  // listGenerations: publicProcedure.query(async ({ ctx }) => {
+  //   const response = await fetch(`${BASE_URL}/sdm/api/v2/list/image/generations/1`);
+  //   if (!response.ok) {
+  //     throw new Error(`Error: Status: ${response.status}`);
+  //   }
+  //   const data: unknown = await response.json();
+  //   return pastGenerationSchema.parse(data);
+  // }),
+
   listGenerations: publicProcedure.query(async ({ ctx }) => {
     const response = await fetch(`${BASE_URL}/sdm/api/v2/list/image/generations/1`);
+    //user1 for now, switch later?
     if (!response.ok) {
       throw new Error(`Error: Status: ${response.status}`);
     }
     const data: unknown = await response.json();
-    return pastGenerationSchema.parse(data);
+    return data;
   }),
+  neuralStyleTransfer: publicProcedure
+    .input(generateImageSchema)
+    .mutation(async ({ ctx, input }) => {
+      // const { project_title, prompt, user_id } = input;
+
+      const url = `${BASE_URL}/sdm/api/v2/nst`;
+
+      // const baseUrl = `${BASE_URL}/sdm/api/v2/nst`;
+      // const queryParams = `?project_title=${encodeURIComponent(project_title)}&prompt=${encodeURIComponent(prompt)}&user_id=${user_id}`;
+      // const url = `${baseUrl}${queryParams}`;
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(input),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error: Status: ${response.status}`);
+      }
+      const imageData: string = await response.text();
+      return imageData;
+    }),
+
 
   demoAuth: publicProcedure.query(async ({ ctx }) => {
     return `Welcome to Artisanal Futures Image Generator, ${ctx.session?.user.name ?? "authed user!"}`;
