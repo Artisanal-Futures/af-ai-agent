@@ -1,7 +1,7 @@
 import { Loader2 } from "lucide-react";
 
 import { useState } from "react";
-import { CiImport } from "react-icons/ci";
+
 import { Button } from "~/components/ui/button";
 
 import { api } from "~/trpc/react";
@@ -15,8 +15,10 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 
+import Image from "next/image";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { BASE_URL, DEMO_IMAGE_PATH } from "~/data/image";
 import { DownloadSurveyDialog } from "./dialogs/download-survey-dialog";
 
 const defaultImagePath =
@@ -37,11 +39,11 @@ export const VariationGenerateCard = (props: Props) => {
   const createImageVariation = api.agent.createImageVariation.useMutation({
     onSuccess: (varData) => {
       console.log("Image variation created successfully");
-      setGeneratedVariation(varData);
+      setGeneratedVariation(`${BASE_URL}${varData.output_image_url}`);
     },
     onError: (error) => {
       console.error("Error creating image variation:", error);
-      setGeneratedVariation("test");
+      setGeneratedVariation(DEMO_IMAGE_PATH);
     },
   });
 
@@ -52,19 +54,16 @@ export const VariationGenerateCard = (props: Props) => {
     }
   };
   const image = selectedImage ?? defaultImagePath;
+
   const handleCreateImageVariation = async () => {
-    try {
-      const varData = await createImageVariation.mutateAsync({
-        guidance_prompt: guidancePrompt,
-        project_title: projectName2,
-        user_id: props?.userId ?? "",
-        input_image: image, // Assuming you have the base64 string of the input image
-      });
-      setGeneratedVariation(varData);
-    } catch (error) {
-      console.error("Failed to create image variation:", error);
-      setGeneratedVariation(defaultImagePath);
-    }
+    const base64Image = await convertBlobToBase64(image);
+
+    createImageVariation.mutate({
+      guidance_prompt: guidancePrompt,
+      project_title: projectName2,
+      user_id: props?.userId ?? "",
+      image: base64Image ?? "", // Assuming you have the base64 string of the input image
+    });
   };
 
   return (
@@ -108,15 +107,17 @@ export const VariationGenerateCard = (props: Props) => {
             <Input
               id="file-upload"
               type="file"
+              accept="image/*"
               className="text-base font-light italic text-gray-500 hover:underline"
               onChange={handleImageUpload}
             />
             {selectedImage && (
-              <div className="mt-2">
-                <img
+              <div className="relative mt-2 h-64 w-64">
+                <Image
+                  fill={true}
                   src={selectedImage}
                   alt="Selected"
-                  className="h-64 w-64 object-cover"
+                  className="object-cover"
                 />
               </div>
             )}
@@ -138,7 +139,7 @@ export const VariationGenerateCard = (props: Props) => {
         </div>
         {/* Right Column */}
         <div className="col-span-1 flex flex-col items-center justify-center space-y-5">
-          <div className="mt-7 flex h-64 w-64 items-center justify-center rounded-lg border-2 border-dashed border-gray-400 bg-gray-100">
+          <div className="relative mt-7 flex h-64 w-64 items-center justify-center rounded-lg border-2 border-dashed border-gray-400 bg-gray-100">
             {createImageVariation.isPending ? (
               <div className="flex flex-col items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
@@ -147,10 +148,10 @@ export const VariationGenerateCard = (props: Props) => {
                 </span>
               </div>
             ) : generatedVariation ? (
-              <img
+              <Image
+                fill={true}
                 src={generatedVariation}
                 alt="Generated Variation"
-                // style={{ maxWidth: '100%', maxHeight: '500px' }}
               />
             ) : (
               <span className="text-lg font-bold text-gray-400">
@@ -165,4 +166,27 @@ export const VariationGenerateCard = (props: Props) => {
       </CardContent>
     </Card>
   );
+};
+
+const ensureBase64Padding = (base64String: string) => {
+  // Add padding if necessary
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  return base64String + padding;
+};
+
+const convertBlobToBase64 = async (url: string) => {
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    const base64String = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+    return ensureBase64Padding((base64String as string).split(",")[1]!);
+  } catch (error) {
+    console.error("Error converting Blob to Base64:", error);
+    return null;
+  }
 };

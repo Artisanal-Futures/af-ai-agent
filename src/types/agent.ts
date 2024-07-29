@@ -25,7 +25,7 @@ export const createImageVariationSchema = z.object({
   guidance_prompt: z.string(),
   user_id: z.string(),
   project_title: z.string(),
-  input_image: z.string(),
+  image: z.string(),
 });
 
 export const listPromptsSchema = z.object({

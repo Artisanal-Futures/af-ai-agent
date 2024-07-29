@@ -1,7 +1,5 @@
-import type { Session } from "next-auth";
 import { CiImport } from "react-icons/ci";
-import { SessionDropDownMenu } from "~/app/(auth)/_components/session-dropdown-menu";
-import { SignInButton } from "~/app/(auth)/_components/sign-in-button";
+
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
@@ -12,6 +10,7 @@ import {
   HoverCardTrigger,
 } from "~/components/ui/hover-card";
 
+import Image from "next/image";
 import { useState } from "react";
 import {
   Dialog,
@@ -33,11 +32,6 @@ export function DownloadSurveyDialog({ imageUrl }: { imageUrl: string }) {
 
   const [showSurveyDownload, setShowSurveyDownload] = useState(false);
 
-  const handleDownloadClick = () => {
-    setShowDownloadCard(true);
-    setShowSurveyDownload(false);
-  };
-
   const [imageSatisfactory, setImageSatisfactory] = useState("option-one");
   const [imageUsability, setImageUsability] = useState("option-one");
 
@@ -54,6 +48,23 @@ export function DownloadSurveyDialog({ imageUrl }: { imageUrl: string }) {
 
     // Close the survey card if needed
     //setShowDownloadCard(false);
+  };
+
+  // Create a function that takes a  url and downloads it
+  const downloadImage = async (url: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const link = document.createElement("a");
+      link.href = window.URL.createObjectURL(blob);
+      link.download = "image.png"; // Set the default name for the downloaded image
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setShowDownloadCard(false);
+    } catch (error) {
+      console.error("Error downloading the image:", error);
+    }
   };
 
   return (
@@ -73,7 +84,7 @@ export function DownloadSurveyDialog({ imageUrl }: { imageUrl: string }) {
         </DialogHeader>
         <div className="grid grid-cols-2 gap-4">
           {/* Left Column */}
-          <div className="col-span-1 flex-col space-y-2">
+          <div className="col-span-1 flex-col space-y-2 ">
             <div className="ml-6 space-y-1">
               <Label htmlFor="name" className="text-base">
                 Do you find the generated image satisfactory to your needs?{" "}
@@ -133,9 +144,17 @@ export function DownloadSurveyDialog({ imageUrl }: { imageUrl: string }) {
                 </HoverCardContent>
               </HoverCard>
             )}
-            <div className="mt-3 flex h-64 w-64 items-center justify-center bg-gray-200">
-              <span className="text-lg font-bold">Generated Image</span>
+            <div className="relative mt-3 flex h-64 w-64 items-center justify-center bg-gray-200">
+              {/* <span className="text-lg font-bold">Generated Image</span> */}
+              {imageUrl ? (
+                <Image fill={true} src={imageUrl} alt="Generated Image" />
+              ) : (
+                <span className="text-lg font-bold text-gray-400">
+                  Generated Image
+                </span>
+              )}{" "}
             </div>
+
             {showSurveyDownload && (
               <div
                 className="mt-5 flex w-full justify-center"
@@ -143,7 +162,7 @@ export function DownloadSurveyDialog({ imageUrl }: { imageUrl: string }) {
               >
                 <Button
                   className="#ffffff-text-thin flex space-x-2"
-                  onClick={() => setShowDownloadCard(false)}
+                  onClick={() => void downloadImage(imageUrl)}
                 >
                   <span>Download</span>
                   <CiImport className="text-xl" />
