@@ -2,7 +2,7 @@
 import { create } from "domain";
 import { Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useQuery } from 'react-query';
 // import { useState } from "react";
 import { CiImport } from "react-icons/ci";
@@ -29,10 +29,14 @@ import { SessionDropDownMenu } from "./(auth)/_components/session-dropdown-menu"
 import { SignInButton } from "./(auth)/_components/sign-in-button";
 import { Slider } from "~/components/ui/slider"
 import { PastGenerations } from "~/types/agent";
+import { PastVariations } from "~/types/agent";
+
 
 
 
 export default function Home() {
+  let BASEURL = "http://35.1.114.178:8000/";
+
   const generateImage = api.agent.generateImage.useMutation({
     onSuccess: (imageData) => {
       console.log("Image generated successfully");
@@ -50,16 +54,26 @@ export default function Home() {
     "/img/stable-diffusion-xl--f7d3df13d07a4c4abe50690e4a994336.png";
   const handleGenerateImage = async () => {
     try {
-      const imageData = await generateImage.mutateAsync({
+      const response = await generateImage.mutateAsync({
         project_title: projectName,
         prompt: prompt,
-        user_id: 1,
+        user_id: "cly90u3wp000aqw0j91enuc0f",
       });
-      setGeneratedImage(imageData);
+      const imageData = JSON.parse(response);
+      console.log(imageData);
+      console.log(imageData.image_url);
+      let fullImageUrl = BASEURL + imageData.image_url;
+      console.log(fullImageUrl);
+      setGeneratedImage(fullImageUrl);
     } catch (error) {
       console.error("Failed to generate image:", error);
       setGeneratedImage(defaultImagePath);
     }
+    // await generateImage.mutateAsync({
+    //   project_title: projectName,
+    //   prompt: prompt,
+    //   user_id: session?.user?.name ?? "user",
+    // });
   };
   const [negativePrompt, setNegativePrompt] = useState<string>("low resolution, blurry image...");
   const [regeneratedImage, setRegeneratedImage] = useState<string>("");
@@ -82,7 +96,8 @@ export default function Home() {
       const imageData = await regenerateImage.mutateAsync({
         project_title: projectName,
         prompt: prompt,
-        user_id: 1,
+        // user_id: 1,
+        user_id: "cly90u3wp000aqw0j91enuc0f",
         guidance_scale: guidanceScale,
         negative_prompt: negativePrompt,
       });
@@ -115,7 +130,8 @@ export default function Home() {
       const varData = await createImageVariation.mutateAsync({
         guidance_prompt: guidancePrompt,
         project_title: projectName2,
-        user_id: 1,
+        // user_id: 1,
+        user_id: "cly90u3wp000aqw0j91enuc0f",
         input_image: image, // Assuming you have the base64 string of the input image
       });
       setGeneratedVariation(varData);
@@ -152,6 +168,20 @@ export default function Home() {
       }
     } catch (error) {
       console.error("Failed to fetch past generations:", error);
+    }
+  };
+
+  //past Variations
+  const [pastVariations, setPastVariations] = useState<PastVariations>([]);
+  //how to process:
+  const fetchPastVariations = async () => {
+    try {
+      const result = await api.agent.listVariations.useQuery();
+      if (result.data) {
+        setPastVariations(result.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch past variations:", error);
     }
   };
 
@@ -267,13 +297,11 @@ export default function Home() {
   const [imageUsability, setImageUsability] = useState("option-one");
 
   const handleSurveyDownloadClick = () => {
-    // Collecting survey responses
     const surveyResponses = {
       imageSatisfactory,
       imageUsability,
     };
 
-    // Logging the survey responses to the console
     console.log(surveyResponses);
     setShowSurveyDownload(true);
 
@@ -287,12 +315,10 @@ export default function Home() {
     "An image of a denim jacket with floral embroidery",
   );
   const handleAIFormClick = () => {
-    // Collecting survey responses
     const aiFormResponses = {
       projectName,
       prompt,
     };
-    // Logging the survey responses to the console
     console.log(aiFormResponses);
 
     // Close the survey card if needed
@@ -831,7 +857,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* Past Prompts Card */}
+        {/* Past Generations Card */}
         {showPastGens && (
           <div className="fixed bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center bg-gray-500 bg-opacity-50">
             <Card className="relative w-[60%] bg-white p-4">
@@ -846,9 +872,9 @@ export default function Home() {
               </div>
               <CardContent>
                 <CardHeader>
-                  <CardTitle>Past Prompts</CardTitle>
+                  <CardTitle>Past Prompts and Generations</CardTitle>
                   <CardDescription className="text-lg">
-                    Here you can view your previous prompts.
+                    Here you can view your previous prompts and outputs.
                   </CardDescription>
                 </CardHeader>
                 <div className="ml-6 mr-6">
@@ -897,7 +923,7 @@ export default function Home() {
             </Card>
           </div>
         )}
-
+        {/* Image Variations card*/}
         {showImageVars && (
           <div className="fixed bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center bg-gray-500 bg-opacity-50">
             <Card className="relative w-[80%] bg-white p-4">
@@ -924,25 +950,25 @@ export default function Home() {
                     <div className="text-lg font-semibold">Base</div>
                     <div className="text-lg font-semibold">Result</div>
                   </div>
-                  {pastGenerations.length > 0 ? (
-                    pastGenerations.map((generation, index) => (
+                  {pastVariations.length > 0 ? (
+                    pastVariations.map((variation, index) => (
                       <div
                         key={index}
                         className="grid grid-cols-3 gap-4 border border-gray-300 bg-gray-200 p-4"
                       >
                         <div className="flex flex-col justify-center">
-                          <h3 className="text-lg font-semibold">{generation.project_title}</h3>
-                          <p>{generation.prompt}</p>
+                          <h3 className="text-lg font-semibold">{variation.project_title}</h3>
+                          <p>{variation.prompt}</p>
                           <p className="text-sm text-gray-500">
-                            Generated on: {new Date(generation.generation_date).toLocaleString()}
+                            Generated on: {new Date(variation.generation_date).toLocaleString()}
                           </p>
                         </div>
                         <div className="flex items-center justify-center">
                           <div className="mt-7 flex h-64 w-64 items-center justify-center rounded-lg border-2 border-dashed border-gray-400 bg-gray-100">
-                            {generation.input_image_url ? (
+                            {variation.input_image_url ? (
                               <img
-                                src={generation.input_image_url}
-                                alt={`Base: ${generation.project_title}`}
+                                src={variation.input_image_url}
+                                alt={`Base: ${variation.project_title}`}
                                 className="object-cover h-full w-full"
                               />
                             ) : (
@@ -952,10 +978,10 @@ export default function Home() {
                         </div>
                         <div className="flex items-center justify-center">
                           <div className="mt-7 flex h-64 w-64 items-center justify-center rounded-lg border-2 border-dashed border-gray-400 bg-gray-100">
-                            {generation.output_image_url ? (
+                            {variation.output_image_url ? (
                               <img
-                                src={generation.output_image_url}
-                                alt={`Variation: ${generation.project_title}`}
+                                src={variation.output_image_url}
+                                alt={`Variation: ${variation.project_title}`}
                                 className="object-cover h-full w-full"
                               />
                             ) : (

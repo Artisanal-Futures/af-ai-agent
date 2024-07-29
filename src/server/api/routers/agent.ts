@@ -9,6 +9,7 @@ import {
   generateImageSchema,
   regenerateImageSchema,
   pastGenerationSchema,
+  pastVariationSchema,
 } from "~/types/agent";
 
 const BASE_URL = "http://35.1.114.178:8000";
@@ -143,24 +144,39 @@ export const agentRouter = createTRPCRouter({
     return TEST_PROMPT_DATA;
   }),
 
-  // listGenerations: publicProcedure.query(async ({ ctx }) => {
-  //   const response = await fetch(`${BASE_URL}/sdm/api/v2/list/image/generations/1`);
-  //   if (!response.ok) {
-  //     throw new Error(`Error: Status: ${response.status}`);
-  //   }
-  //   const data: unknown = await response.json();
-  //   return pastGenerationSchema.parse(data);
-  // }),
 
-  listGenerations: publicProcedure.query(async ({ ctx }) => {
-    const response = await fetch(`${BASE_URL}/sdm/api/v2/list/image/generations/1`);
-    //user1 for now, switch later?
-    if (!response.ok) {
-      throw new Error(`Error: Status: ${response.status}`);
-    }
-    const data: unknown = await response.json();
-    return data;
-  }),
+  listGenerations: publicProcedure
+    .input(pastGenerationSchema)
+    .query(async ({ ctx }) => {
+      const response = await fetch(`${BASE_URL}/sdm/api/v2/list/image/generations/1`);
+      //user1 for now, switch later?
+      if (!response.ok) {
+        throw new Error(`Error: Status: ${response.status}`);
+      }
+      const data: unknown = await response.json();
+      return data;
+    }),
+
+  listVariations: publicProcedure
+    .input(pastVariationSchema)
+    .query(async ({ ctx, input }) => {
+      const queryParams = new URLSearchParams({
+        user_id: input.user_id,
+        project_title: input.project_title,
+        prompt: input.prompt,
+        guidance_scale: input.guidance_scale.toString(),
+        negative_prompt: input.negative_prompt,
+      }).toString();
+
+      const response = await fetch(`${BASE_URL}/sdm/api/v2/list/image/variations/1?${queryParams}`);
+      // user1 for now, switch later?
+      if (!response.ok) {
+        throw new Error(`Error: Status: ${response.status}`);
+      }
+      const data: unknown = await response.json();
+      return data;
+    }),
+
   neuralStyleTransfer: publicProcedure
     .input(generateImageSchema)
     .mutation(async ({ ctx, input }) => {

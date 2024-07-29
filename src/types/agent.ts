@@ -5,14 +5,15 @@ import * as z from "zod";
 export const generateImageSchema = z.object({
   project_title: z.string(),
   prompt: z.string(),
-  // user_uname: z.string(),
-  user_id: z.number(),
+  user_id: z.string(),
+  // user_id: z.number(),
 });
 
 export const regenerateImageSchema = z.object({
   project_title: z.string(),
   prompt: z.string(),
-  user_id: z.number(),
+  // user_id: z.number(),
+  user_id: z.string(),
   guidance_scale: z.number(),
   negative_prompt: z.string(),
 });
@@ -25,7 +26,8 @@ export const createSurveySchema = z.object({
 
 export const createImageVariationSchema = z.object({
   guidance_prompt: z.string(),
-  user_id: z.number(),
+  // user_id: z.number(),
+  user_id: z.string(),
   project_title: z.string(),
   input_image: z.string(),
 });
@@ -38,7 +40,8 @@ export const listPromptsSchema = z.object({
 
 export const pastGenerationSchema = z.object({
   id: z.number(),
-  user_id: z.number(),
+  // user_id: z.number(),
+  user_id: z.string(),
   project_title: z.string(),
   prompt: z.string(),
   image_url: z.string(),
@@ -47,10 +50,20 @@ export const pastGenerationSchema = z.object({
   user: z.any().nullable(),
 });
 
+export const pastVariationSchema = z.object({
+  user_id: z.string(),
+  project_title: z.string(),
+  prompt: z.string(),
+  guidance_scale: z.number(),
+  negative_prompt: z.string(),
+});
+
 export type GenerateImageInput = z.infer<typeof generateImageSchema>;
 export type CreateImageInput = z.infer<typeof createImageVariationSchema>;
 export const pastGenerationsSchema = z.array(pastGenerationSchema);
 export type PastGenerations = z.infer<typeof pastGenerationsSchema>;
+export type PastVariations = z.infer<typeof pastVariationSchema>;
+
 
 
 
