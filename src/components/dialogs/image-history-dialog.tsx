@@ -17,16 +17,15 @@ import { env } from "~/env";
 import { api } from "~/trpc/react";
 import { ScrollArea } from "../ui/scroll-area";
 
-export function ImageHistoryDialog(props: { session: Session | null }) {
+export function ImageHistoryDialog(props: {
+  session: Session | null;
+  demo?: boolean;
+}) {
   const [open, setOpen] = useState(false);
 
   const fetchPastVariations = api.agent.listVariations.useQuery(
-    {
-      user_id: props.session?.user.id ?? "",
-    },
-    {
-      enabled: !!props.session?.user.id && open,
-    },
+    { user_id: props.session?.user.id ?? "", demo: props?.demo },
+    { enabled: !!props.session?.user.id && open },
   );
 
   return (
@@ -39,7 +38,7 @@ export function ImageHistoryDialog(props: { session: Session | null }) {
           Image Variations
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[60%]">
+      <DialogContent className="sm:max-w-6xl ">
         <DialogHeader>
           <DialogTitle>Image Variations</DialogTitle>
           <DialogDescription className="text-lg">

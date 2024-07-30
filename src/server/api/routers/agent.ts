@@ -1,133 +1,33 @@
 import { TRPCError } from "@trpc/server";
 import axios from "axios";
+import * as z from "zod";
 import { DEMO_LIST_GENERATIONS, DEMO_LIST_VARIATIONS } from "~/data/demo";
 import { env } from "~/env";
-import {
-  createTRPCRouter,
-  protectedProcedure,
-  publicProcedure,
-} from "~/server/api/trpc";
+import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import {
   createImageVariationSchema,
-  createSurveySchema,
+  type GenerateImageResponse,
   generateImageSchema,
+  type Generation,
   listGenerationsSchema,
-  pastGenerationSchema,
   regenerateImageSchema,
+  type RegenerationResponse,
+  type StyleTransfer,
   styleTransferSchema,
+  type Variation,
+  type VariationResponse,
 } from "~/types/agent";
 
-const BASE_URL = env.BACKEND_URL;
-// const BASE_URL = 'http://35.3.242.60:8000';
-
-const TEST_USER_DATA = [
-  { user_name: "John Doe" },
-  { user_name: "Jane Doe" },
-  { user_name: "John Smith" },
-];
-
-type GenerateImageResponse = {
-  id: string;
-  user_id: number;
-  project_title: string;
-  prompt: string;
-  image_url: string;
-  generation_time: number;
-  generation_date: string;
-  user: unknown;
-};
-
-type VariationResponse = {
-  id: string;
-  user_id: number;
-  project_title: string;
-  prompt: string;
-  negative_prompt: string;
-  output_image_url: string;
-  guidance_scale: number;
-  generation_time: number;
-  generation_date: string;
-};
-
-type RegenerationResponse = {
-  id: string;
-  user_id: number;
-  project_title: string;
-  prompt: string;
-  negative_prompt: string;
-  output_image_url: string;
-  guidance_scale: number;
-  generation_time: number;
-  generation_date: string;
-};
-
-type Generation = {
-  id: string;
-  user_id: number;
-  prompt: string;
-  project_title: string;
-  image_url: string;
-  generation_time: number;
-  generation_date: string;
-};
-
-type Variation = {
-  id: number;
-  user_id: string;
-  project_title: string;
-  guidance_prompt: string;
-  input_image_url: string;
-  output_image_url: string;
-  generation_time: number;
-  generation_date: string;
-};
-
-type StyleTransfer = {
-  id: string;
-  user_id: number;
-  project_title: string;
-  content_image: string;
-  style_image: string;
-  output_image_url: string;
-  generation_time: number;
-  generation_date: string;
-};
-
-const TEST_BASE_64 =
-  "data:image/png;base64,R0lGODlhAQABAIAAAP///wAAACwAAAAAAQABAAACAkQBADs=";
-
-const TEST_PROMPT_DATA = [
-  {
-    level_of_satisfaction: "yes",
-    direct_use_in_fabrication: false,
-    image: TEST_BASE_64,
-  },
-  {
-    level_of_satisfaction: "no",
-    direct_use_in_fabrication: true,
-    image: TEST_BASE_64,
-  },
-  {
-    level_of_satisfaction: "yes",
-    direct_use_in_fabrication: false,
-    image: TEST_BASE_64,
-  },
-];
-
-const DEBUG_MODE = false;
-
 export const agentRouter = createTRPCRouter({
-  listUsers: publicProcedure.query(() => {
-    return TEST_USER_DATA;
-  }),
-
   //make protected later
   generateImage: publicProcedure
-    .input(generateImageSchema)
+    .input(generateImageSchema.extend({ demo: z.boolean().optional() }))
     .mutation(async ({ input }) => {
       const baseUrl = `${env.BACKEND_URL}sdm/api/v2/generate/images`;
 
-      if (DEBUG_MODE) {
+      const { demo, ...generateImageInput } = input;
+
+      if (demo) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: `Error: Status: DEBUG`,
@@ -135,7 +35,7 @@ export const agentRouter = createTRPCRouter({
       }
 
       try {
-        const response = await axios.post(baseUrl, input, {
+        const response = await axios.post(baseUrl, generateImageInput, {
           headers: {
             "Content-Type": "application/json",
           },
@@ -156,11 +56,13 @@ export const agentRouter = createTRPCRouter({
     }),
 
   regenerateImage: publicProcedure
-    .input(regenerateImageSchema)
+    .input(regenerateImageSchema.extend({ demo: z.boolean().optional() }))
     .mutation(async ({ input }) => {
       const baseUrl = `${env.BACKEND_URL}sdm/api/v2/edit/generated/images`;
 
-      if (DEBUG_MODE) {
+      const { demo, ...regenerateImageInput } = input;
+
+      if (demo) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: `Error: Status: DEBUG`,
@@ -168,7 +70,7 @@ export const agentRouter = createTRPCRouter({
       }
 
       try {
-        const response = await axios.post(baseUrl, input, {
+        const response = await axios.post(baseUrl, regenerateImageInput, {
           headers: {
             "Content-Type": "application/json",
           },
@@ -189,11 +91,13 @@ export const agentRouter = createTRPCRouter({
     }),
 
   createImageVariation: publicProcedure
-    .input(createImageVariationSchema)
+    .input(createImageVariationSchema.extend({ demo: z.boolean().optional() }))
     .mutation(async ({ input }) => {
-      const baseUrl = `http://0.0.0.0:8000/sdm/api/v2/create/variations`;
+      const baseUrl = `${env.BACKEND_URL}sdm/api/v2/create/variations`;
 
-      if (DEBUG_MODE) {
+      const { demo, ...createImageVariationInput } = input;
+
+      if (demo) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: `Error: Status: DEBUG`,
@@ -201,7 +105,7 @@ export const agentRouter = createTRPCRouter({
       }
 
       try {
-        const response = await axios.post(baseUrl, input, {
+        const response = await axios.post(baseUrl, createImageVariationInput, {
           headers: {
             "Content-Type": "application/json",
           },
@@ -222,11 +126,13 @@ export const agentRouter = createTRPCRouter({
     }),
 
   neuralStyleTransfer: publicProcedure
-    .input(styleTransferSchema)
+    .input(styleTransferSchema.extend({ demo: z.boolean().optional() }))
     .mutation(async ({ input }) => {
+      const { demo, ...styleTransferInput } = input;
+
       const url = `${env.NST_URL}sdm/api/v2/nst/`;
 
-      if (DEBUG_MODE) {
+      if (demo) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: `Error: Status: DEBUG`,
@@ -234,7 +140,7 @@ export const agentRouter = createTRPCRouter({
       }
 
       try {
-        const response = await axios.post(url, input, {
+        const response = await axios.post(url, styleTransferInput, {
           headers: {
             "Content-Type": "application/json",
           },
@@ -254,27 +160,12 @@ export const agentRouter = createTRPCRouter({
       }
     }),
 
-  createSurvey: publicProcedure
-    .input(createSurveySchema)
-    .mutation(async ({ ctx, input }) => {
-      // simulate a slow db call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      return {
-        result: "response recorded successfully",
-      };
-    }),
-
-  listPrompts: publicProcedure.query(({ ctx }) => {
-    return TEST_PROMPT_DATA;
-  }),
-
   listGenerations: publicProcedure
-    .input(listGenerationsSchema)
+    .input(listGenerationsSchema.extend({ demo: z.boolean().optional() }))
     .query(async ({ input }) => {
       const url = `${env.BACKEND_URL}sdm/api/v2/list/image/generations/${input.user_id}`;
 
-      if (DEBUG_MODE) {
+      if (input?.demo) {
         return DEMO_LIST_GENERATIONS as Generation[];
       }
 
@@ -288,11 +179,11 @@ export const agentRouter = createTRPCRouter({
     }),
 
   listVariations: publicProcedure
-    .input(listGenerationsSchema)
+    .input(listGenerationsSchema.extend({ demo: z.boolean().optional() }))
     .query(async ({ input }) => {
       const url = `${env.BACKEND_URL}sdm/api/v2/list/image/variations/${input.user_id}`;
 
-      if (DEBUG_MODE) {
+      if (input?.demo) {
         return DEMO_LIST_VARIATIONS as Variation[];
       }
 
@@ -304,12 +195,13 @@ export const agentRouter = createTRPCRouter({
       const data: unknown = await response.json();
       return data as Variation[];
     }),
+
   listStyleImages: publicProcedure
-    .input(listGenerationsSchema)
+    .input(listGenerationsSchema.extend({ demo: z.boolean().optional() }))
     .query(async ({ input }) => {
       const url = `${env.NST_URL}sdm/api/v2/list/nst/styles/${input.user_id}`;
 
-      if (DEBUG_MODE) {
+      if (input?.demo) {
         return [] as Variation[];
       }
 
@@ -321,10 +213,6 @@ export const agentRouter = createTRPCRouter({
       const data: unknown = await response.json();
       return data as Variation[];
     }),
-
-  demoAuth: publicProcedure.query(async ({ ctx }) => {
-    return `Welcome to Artisanal Futures Image Generator, ${ctx.session?.user.name ?? "authed user!"}`;
-  }),
 });
 
 // https://docs.google.com/spreadsheets/d/1GWFeXZihD3OExWMBJNDgfDJPYv_R9OF3gXF5hUyIebw/edit?gid=0#gid=0

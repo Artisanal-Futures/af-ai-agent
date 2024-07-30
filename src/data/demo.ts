@@ -204,3 +204,30 @@ export const DEMO_LIST_VARIATIONS = [
     generation_date: "2024-07-30T12:25:22.654Z",
   },
 ];
+
+const TEST_USER_DATA = [
+  { user_name: "John Doe" },
+  { user_name: "Jane Doe" },
+  { user_name: "John Smith" },
+];
+
+const TEST_BASE_64 =
+  "data:image/png;base64,R0lGODlhAQABAIAAAP///wAAACwAAAAAAQABAAACAkQBADs=";
+
+const TEST_PROMPT_DATA = [
+  {
+    level_of_satisfaction: "yes",
+    direct_use_in_fabrication: false,
+    image: TEST_BASE_64,
+  },
+  {
+    level_of_satisfaction: "no",
+    direct_use_in_fabrication: true,
+    image: TEST_BASE_64,
+  },
+  {
+    level_of_satisfaction: "yes",
+    direct_use_in_fabrication: false,
+    image: TEST_BASE_64,
+  },
+];

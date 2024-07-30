@@ -13,21 +13,20 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
-import { BASE_URL } from "~/data/image";
+
 import { env } from "~/env";
 import { api } from "~/trpc/react";
 import { ScrollArea } from "../ui/scroll-area";
 
-export function PastPromptsDialog(props: { session: Session | null }) {
+export function PastPromptsDialog(props: {
+  session: Session | null;
+  demo?: boolean;
+}) {
   const [open, setOpen] = useState(false);
 
   const fetchPastGenerations = api.agent.listGenerations.useQuery(
-    {
-      user_id: props.session?.user.id ?? "",
-    },
-    {
-      enabled: !!props.session?.user.id && open,
-    },
+    { user_id: props.session?.user.id ?? "", demo: props?.demo },
+    { enabled: !!props.session?.user.id && open },
   );
 
   return (

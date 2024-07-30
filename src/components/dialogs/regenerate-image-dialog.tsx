@@ -34,6 +34,7 @@ type Props = {
   prompt: string;
   imageUrl: string;
   userId: string | null;
+  demo?: boolean;
 };
 
 export function RegenerateImageDialog({
@@ -41,6 +42,7 @@ export function RegenerateImageDialog({
   prompt,
   imageUrl,
   userId,
+  demo,
 }: Props) {
   const [showDownloadCard, setShowDownloadCard] = useState(false);
 
@@ -75,6 +77,7 @@ export function RegenerateImageDialog({
       project_title: projectName,
       prompt: prompt,
       user_id: userId ?? "",
+      demo,
       guidance_scale: guidanceScale,
       negative_prompt: negativePrompt,
     });

@@ -13,12 +13,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
-import { BASE_URL } from "~/data/image";
-import { api } from "~/trpc/react";
+
+// import { api } from "~/trpc/react";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 
-export function StyleHistoryDialog(props: { session: Session | null }) {
+export function StyleHistoryDialog(props: {
+  session: Session | null;
+  demo?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const [styleName, setStyleName] = useState<string>("");
 
@@ -27,14 +30,15 @@ export function StyleHistoryDialog(props: { session: Session | null }) {
     { src: string; name: string }[]
   >([]);
 
-  const fetchPastGenerations = api.agent.listStyleImages.useQuery(
-    {
-      user_id: props.session?.user.id ?? "",
-    },
-    {
-      enabled: !!props.session?.user.id && open,
-    },
-  );
+  // const fetchStyleImages = api.agent.listStyleImages.useQuery(
+  //   {
+  //     user_id: props.session?.user.id ?? "",
+  //     demo: props?.demo,
+  //   },
+  //   {
+  //     enabled: !!props.session?.user.id && open,
+  //   },
+  // );
 
   const handleStyleUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? []);

@@ -16,16 +16,16 @@ import { Label } from "~/components/ui/label";
 
 import { api } from "~/trpc/react";
 
-import Image from "next/image";
-import { CiImport } from "react-icons/ci";
-import { BASE_URL, DEMO_IMAGE_PATH } from "~/data/image";
-import { downloadImage } from "~/lib/download";
+import { DEMO_IMAGE_PATH } from "~/data/image";
 
 import { env } from "~/env";
-import { RegenerateImageDialog } from "./dialogs/regenerate-image-dialog";
+import { RegenerateImageDialog } from "../dialogs/regenerate-image-dialog";
+import { DownloadButton } from "../download-button";
+import { ImagePreview } from "../image-preview";
 
 type Props = {
   userId?: string | null | undefined;
+  demo?: boolean;
 };
 
 export const ImageGenerateCard = (props: Props) => {
@@ -51,6 +51,7 @@ export const ImageGenerateCard = (props: Props) => {
       project_title: projectName,
       prompt: prompt,
       user_id: props?.userId ?? "",
+      demo: props?.demo,
     });
   };
 
@@ -90,8 +91,6 @@ export const ImageGenerateCard = (props: Props) => {
             />
           </div>
           <CardFooter className="">
-            {/* <Button className="text-base mt-4">Generate Image</Button> */}
-            {/* Generate Image */}
             <Button
               className="mt-4 text-base"
               onClick={handleGenerateImage}
@@ -106,39 +105,22 @@ export const ImageGenerateCard = (props: Props) => {
         </div>
         {/* Right Column */}
         <div className="col-span-1 flex flex-col items-center justify-center space-y-5">
-          <div className="relative mt-7 flex h-64 w-64 items-center justify-center rounded-lg border-2 border-dashed border-gray-400 bg-gray-100">
-            {/* <span className="text-lg font-bold text-gray-300">Generated Image</span> */}
-            {generateImage.isPending ? (
-              <div className="flex flex-col items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-                <span className="mt-2 text-lg font-bold text-gray-400">
-                  Loading Image...
-                </span>
-              </div>
-            ) : generatedImage ? (
-              <Image fill={true} src={generatedImage} alt="Generated Image" />
-            ) : (
-              <span className="text-lg font-bold text-gray-400">
-                Generated Image
-              </span>
-            )}
-          </div>
+          <ImagePreview
+            isPending={generateImage.isPending}
+            imageUrl={generatedImage}
+            title="Generated Image"
+          />
 
           {generatedImage && (
             <div className="mt-5 flex w-full justify-center gap-4">
-              <Button
-                className="#ffffff-text-thin flex space-x-2"
-                onClick={() => void downloadImage(generatedImage)}
-              >
-                <span>Download</span>
-                <CiImport className="text-xl" />
-              </Button>
+              <DownloadButton imageUrl={generatedImage} />
 
               <RegenerateImageDialog
                 userId={props.userId ?? null}
                 imageUrl={generatedImage}
                 projectName={projectName}
                 prompt={prompt}
+                demo={props?.demo}
               />
             </div>
           )}

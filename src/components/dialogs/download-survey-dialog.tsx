@@ -21,6 +21,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
+import { DownloadButton } from "../download-button";
 
 export function DownloadSurveyDialog({ imageUrl }: { imageUrl: string }) {
   const [showDownloadCard, setShowDownloadCard] = useState(false);
@@ -50,23 +51,6 @@ export function DownloadSurveyDialog({ imageUrl }: { imageUrl: string }) {
     //setShowDownloadCard(false);
   };
 
-  // Create a function that takes a  url and downloads it
-  const downloadImage = async (url: string) => {
-    try {
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const link = document.createElement("a");
-      link.href = window.URL.createObjectURL(blob);
-      link.download = "image.png"; // Set the default name for the downloaded image
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      setShowDownloadCard(false);
-    } catch (error) {
-      console.error("Error downloading the image:", error);
-    }
-  };
-
   return (
     <Dialog open={showDownloadCard} onOpenChange={setShowDownloadCard}>
       <DialogTrigger asChild>
@@ -89,7 +73,10 @@ export function DownloadSurveyDialog({ imageUrl }: { imageUrl: string }) {
               <Label htmlFor="name" className="text-base">
                 Do you find the generated image satisfactory to your needs?{" "}
               </Label>
-              <RadioGroup defaultValue="option-one">
+              <RadioGroup
+                defaultValue="option-one"
+                onValueChange={setImageSatisfactory}
+              >
                 <div className="mb-7 flex items-center space-x-2">
                   <RadioGroupItem value="option-one" id="option-one" />
                   <Label htmlFor="option-one">Yes</Label>
@@ -108,7 +95,10 @@ export function DownloadSurveyDialog({ imageUrl }: { imageUrl: string }) {
               <Label htmlFor="username" className="text-base">
                 Can the generated image be used directly for digital fabrication
               </Label>
-              <RadioGroup defaultValue="option-one">
+              <RadioGroup
+                defaultValue="option-one"
+                onValueChange={setImageUsability}
+              >
                 <div className="mb-4 flex items-center space-x-2">
                   <RadioGroupItem value="option-one" id="option-one" />
                   <Label htmlFor="option-one">Yes</Label>
@@ -160,13 +150,7 @@ export function DownloadSurveyDialog({ imageUrl }: { imageUrl: string }) {
                 className="mt-5 flex w-full justify-center"
                 id="surveyDownload"
               >
-                <Button
-                  className="#ffffff-text-thin flex space-x-2"
-                  onClick={() => void downloadImage(imageUrl)}
-                >
-                  <span>Download</span>
-                  <CiImport className="text-xl" />
-                </Button>
+                <DownloadButton imageUrl={imageUrl} />
               </div>
             )}
           </div>

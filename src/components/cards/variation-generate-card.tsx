@@ -16,24 +16,27 @@ import {
 } from "~/components/ui/card";
 
 import Image from "next/image";
-import { CiImport } from "react-icons/ci";
+
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { BASE_URL, DEMO_IMAGE_PATH } from "~/data/image";
+import { DEMO_IMAGE_PATH } from "~/data/image";
 import { env } from "~/env";
-import { downloadImage } from "~/lib/download";
+import { convertBlobToBase64 } from "~/lib/convert";
 
-const defaultImagePath =
-  "/img/stable-diffusion-xl--f7d3df13d07a4c4abe50690e4a994336.png";
+import { useLocalStorage } from "@uidotdev/usehooks";
+import { handleImageUpload } from "~/lib/file";
+import { DownloadButton } from "../download-button";
+import { ImagePreview } from "../image-preview";
 
 type Props = {
   userId?: string | null | undefined;
+  demo?: boolean;
 };
 
 export const VariationGenerateCard = (props: Props) => {
   const [generatedVariation, setGeneratedVariation] = useState<string>("");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [projectName2, setProjectName2] = useState<string>("Bag Design Ideas");
+  const [projectName, setProjectName] = useState<string>("Bag Design Ideas");
   const [guidancePrompt, setGuidancePrompt] = useState<string>(
     "Design a bag with this pattern",
   );
@@ -51,22 +54,17 @@ export const VariationGenerateCard = (props: Props) => {
     },
   });
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedImage(URL.createObjectURL(file));
-    }
-  };
-  const image = selectedImage ?? defaultImagePath;
+  const image = selectedImage ?? DEMO_IMAGE_PATH;
 
   const handleCreateImageVariation = async () => {
     const base64Image = await convertBlobToBase64(image);
 
-    await createImageVariation.mutateAsync({
+    createImageVariation.mutate({
       guidance_prompt: guidancePrompt,
-      project_title: projectName2,
+      project_title: projectName,
       user_id: props?.userId ?? "",
       image: base64Image ?? "", // Assuming you have the base64 string of the input image
+      demo: props?.demo,
     });
   };
 
@@ -90,7 +88,7 @@ export const VariationGenerateCard = (props: Props) => {
               id="name"
               className="text-base font-light italic text-gray-500"
               defaultValue="Bag Design Ideas"
-              onChange={(e) => setProjectName2(e.target.value)}
+              onChange={(e) => setProjectName(e.target.value)}
             />
           </div>
           <div className="ml-6 space-y-1">
@@ -113,7 +111,7 @@ export const VariationGenerateCard = (props: Props) => {
               type="file"
               accept="image/*"
               className="text-base font-light italic text-gray-500 hover:underline"
-              onChange={handleImageUpload}
+              onChange={(e) => handleImageUpload({ e, setSelectedImage })}
             />
             {selectedImage && (
               <div className="relative mt-2 h-64 w-64">
@@ -143,64 +141,21 @@ export const VariationGenerateCard = (props: Props) => {
         </div>
         {/* Right Column */}
         <div className="col-span-1 flex flex-col items-center justify-center space-y-5">
-          <div className="relative mt-7 flex h-64 w-64 items-center justify-center rounded-lg border-2 border-dashed border-gray-400 bg-gray-100">
-            {createImageVariation.isPending ? (
-              <div className="flex flex-col items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-                <span className="mt-2 text-lg font-bold text-gray-400">
-                  Loading Image...
-                </span>
-              </div>
-            ) : generatedVariation ? (
-              <Image
-                fill={true}
-                src={generatedVariation}
-                alt="Generated Variation"
-              />
-            ) : (
-              <span className="text-lg font-bold text-gray-400">
-                Generated Variation
-              </span>
-            )}
-          </div>
+          <ImagePreview
+            isPending={createImageVariation.isPending}
+            imageUrl={generatedVariation}
+            title="Generated Variation"
+          />
+
           {generatedVariation && (
             <div className="flex w-full justify-center">
               {/* <DownloadSurveyDialog imageUrl={generatedVariation} /> */}
 
-              <Button
-                className="#ffffff-text-thin flex space-x-2"
-                onClick={() => void downloadImage(generatedVariation)}
-              >
-                <span>Download</span>
-                <CiImport className="text-xl" />
-              </Button>
+              <DownloadButton imageUrl={generatedVariation} />
             </div>
           )}
         </div>
       </CardContent>
     </Card>
   );
-};
-
-const ensureBase64Padding = (base64String: string) => {
-  // Add padding if necessary
-  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  return base64String + padding;
-};
-
-const convertBlobToBase64 = async (url: string) => {
-  try {
-    const response = await fetch(url);
-    const blob = await response.blob();
-    const base64String = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-    return ensureBase64Padding((base64String as string).split(",")[1]!);
-  } catch (error) {
-    console.error("Error converting Blob to Base64:", error);
-    return null;
-  }
 };
