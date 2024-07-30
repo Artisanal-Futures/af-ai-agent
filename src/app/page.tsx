@@ -60,7 +60,6 @@ export default function Home() {
         user_id: "cly90u3wp000aqw0j91enuc0f",
       });
       const imageData = JSON.parse(response);
-      console.log(imageData);
       console.log(imageData.image_url);
       let fullImageUrl = BASEURL + imageData.image_url;
       console.log(fullImageUrl);
@@ -75,7 +74,7 @@ export default function Home() {
     //   user_id: session?.user?.name ?? "user",
     // });
   };
-  const [negativePrompt, setNegativePrompt] = useState<string>("low resolution, blurry image...");
+  const [negativePrompt, setNegativePrompt] = useState<string>("Remove blur, have thread be black and white, zoom in on floral stitching");
   const [regeneratedImage, setRegeneratedImage] = useState<string>("");
 
   const regenerateImage = api.agent.regenerateImage.useMutation({
@@ -93,7 +92,7 @@ export default function Home() {
 
   const handleRegenerateImage = async () => {
     try {
-      const imageData = await regenerateImage.mutateAsync({
+      const response = await regenerateImage.mutateAsync({
         project_title: projectName,
         prompt: prompt,
         // user_id: 1,
@@ -101,9 +100,13 @@ export default function Home() {
         guidance_scale: guidanceScale,
         negative_prompt: negativePrompt,
       });
-      setRegeneratedImage(imageData)
+      const imageData = JSON.parse(response);
+      console.log(imageData.image_url);
+      let fullImageUrl = BASEURL + imageData.image_url;
+      console.log(fullImageUrl);
+      setRegeneratedImage(fullImageUrl);
     } catch (error) {
-      console.error("Failed to regenerate image:", error);
+      console.error("Failed to generate image:", error);
       setRegeneratedImage(defaultImagePath);
     }
   };
@@ -132,20 +135,46 @@ export default function Home() {
         project_title: projectName2,
         // user_id: 1,
         user_id: "cly90u3wp000aqw0j91enuc0f",
-        input_image: image, // Assuming you have the base64 string of the input image
+        input_image: image,
       });
-      setGeneratedVariation(varData);
+      const imageData = JSON.parse(varData);
+      console.log(imageData.image_url);
+      const fullImageUrl = BASEURL + imageData.image_url;
+      console.log(fullImageUrl);
+      setGeneratedVariation(fullImageUrl);
     } catch (error) {
-      console.error("Failed to create image variation:", error);
+      console.error("Failed to generate image:", error);
       setGeneratedVariation(defaultImagePath);
     }
+    //   setGeneratedVariation(varData);
+    // } catch (error) {
+    //   console.error("Failed to create image variation:", error);
+    //   setGeneratedVariation(defaultImagePath);
+    // }
   };
 
   //File Upload
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // const file = e.target.files?.[0];
+    // if (file) {
+    //   setSelectedImage(URL.createObjectURL(file));
+    // }
     const file = e.target.files?.[0];
     if (file) {
-      setSelectedImage(URL.createObjectURL(file));
+      const reader = new FileReader();
+
+      reader.onloadend = () => {
+        if (typeof reader.result === 'string') {
+          setSelectedImage(reader.result);
+        } else {
+          console.error('Failed to convert image to base64');
+        }
+      };
+
+      reader.onerror = () => {
+        console.error('Error reading file');
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -1153,7 +1182,7 @@ export default function Home() {
                     <Input
                       id="username"
                       className="text-base font-light italic text-gray-500"
-                      defaultValue="Design a bag with this pattern"
+                      defaultValue="Remove blur, have thread be black and white, zoom in on floral stitching"
                       onChange={(e) => setNegativePrompt(e.target.value)}
                     />
                   </div>
