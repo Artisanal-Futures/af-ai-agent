@@ -18,6 +18,7 @@ import { VariationGenerateCard } from "~/components/variation-generate-card";
 
 import { ImageHistoryDialog } from "~/components/dialogs/image-history-dialog";
 import { PastPromptsDialog } from "~/components/dialogs/past-propmpts-dialog";
+import { StyleHistoryDialog } from "~/components/dialogs/style-history-dialog";
 import { SessionDropDownMenu } from "./(auth)/_components/session-dropdown-menu";
 import { SignInButton } from "./(auth)/_components/sign-in-button";
 
@@ -64,13 +65,11 @@ export default function Home() {
 
           <HoverCard>
             <HoverCardTrigger asChild>
-              <Button className="text-sm-black rounded-lg bg-gray-200 px-3 py-1 hover:bg-gray-300">
-                Image Descriptions
-              </Button>
+              <StyleHistoryDialog session={session ?? null} />
             </HoverCardTrigger>
             <HoverCardContent>
               <p className="text-center text-sm">
-                View image descriptions of past creations
+                Upload and save styles to use in style transfers
               </p>
             </HoverCardContent>
           </HoverCard>

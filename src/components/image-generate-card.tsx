@@ -17,8 +17,12 @@ import { Label } from "~/components/ui/label";
 import { api } from "~/trpc/react";
 
 import Image from "next/image";
+import { CiImport } from "react-icons/ci";
 import { BASE_URL, DEMO_IMAGE_PATH } from "~/data/image";
-import { DownloadSurveyDialog } from "./dialogs/download-survey-dialog";
+import { downloadImage } from "~/lib/download";
+
+import { env } from "~/env";
+import { RegenerateImageDialog } from "./dialogs/regenerate-image-dialog";
 
 type Props = {
   userId?: string | null | undefined;
@@ -34,7 +38,7 @@ export const ImageGenerateCard = (props: Props) => {
   const generateImage = api.agent.generateImage.useMutation({
     onSuccess: (imageData) => {
       console.log("Image generated successfully");
-      setGeneratedImage(`${BASE_URL}${imageData.image_url}`);
+      setGeneratedImage(`${env.NEXT_PUBLIC_BACKEND_URL}${imageData.image_url}`);
     },
     onError: (error) => {
       console.error("Error generating image:", error);
@@ -121,8 +125,21 @@ export const ImageGenerateCard = (props: Props) => {
           </div>
 
           {generatedImage && (
-            <div className="mt-5 flex w-full justify-center">
-              <DownloadSurveyDialog imageUrl={generatedImage} />
+            <div className="mt-5 flex w-full justify-center gap-4">
+              <Button
+                className="#ffffff-text-thin flex space-x-2"
+                onClick={() => void downloadImage(generatedImage)}
+              >
+                <span>Download</span>
+                <CiImport className="text-xl" />
+              </Button>
+
+              <RegenerateImageDialog
+                userId={props.userId ?? null}
+                imageUrl={generatedImage}
+                projectName={projectName}
+                prompt={prompt}
+              />
             </div>
           )}
         </div>

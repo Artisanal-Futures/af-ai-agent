@@ -15,8 +15,11 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 
+import Image from "next/image";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { BASE_URL, DEMO_IMAGE_PATH } from "~/data/image";
+import { convertBlobToBase64 } from "~/lib/convert";
 import { DownloadSurveyDialog } from "./dialogs/download-survey-dialog";
 
 const defaultImagePath =
@@ -27,6 +30,8 @@ type Props = {
 };
 
 export const StyleTransferCard = (props: Props) => {
+  const [projectName2, setProjectName2] = useState<string>("Bag Design Ideas");
+
   const [selectedContentImage, setSelectedContentImage] = useState<
     string | null
   >(null);
@@ -34,6 +39,7 @@ export const StyleTransferCard = (props: Props) => {
     null,
   );
 
+  const [createdImage, setCreatedImage] = useState<string | null>(null);
   const handleContentImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -48,11 +54,38 @@ export const StyleTransferCard = (props: Props) => {
     }
   };
 
+  const transferStyle = api.agent.neuralStyleTransfer.useMutation({
+    onSuccess: (varData) => {
+      console.log("Image variation created successfully");
+      setCreatedImage(`${BASE_URL}${varData.output_image_url}`);
+    },
+    onError: (error) => {
+      console.error("Error creating image variation:", error);
+      setCreatedImage(DEMO_IMAGE_PATH);
+    },
+  });
+
+  const handleCreateStyleTransfer = async () => {
+    const base64StyleImage = await convertBlobToBase64(
+      selectedStyleImage ?? "",
+    );
+    const base64ContentImage = await convertBlobToBase64(
+      selectedContentImage ?? "",
+    );
+
+    transferStyle.mutate({
+      content_image: base64ContentImage!,
+      style_image: base64StyleImage!,
+      project_title: projectName2 ?? "New Project",
+      user_id: props?.userId ?? "",
+    });
+  };
+
   return (
     <Card>
-      <CardContent className="grid grid-cols-2 gap-4">
+      <CardContent className="grid grid-cols-4 gap-4">
         {/* Left Column */}
-        <div className="col-span-1 space-y-2">
+        <div className="col-span-2 space-y-2">
           <CardHeader>
             <CardTitle className="text-2xl">Neural Style Transfer</CardTitle>
             <CardDescription className="text-lg">
@@ -68,9 +101,10 @@ export const StyleTransferCard = (props: Props) => {
               id="name"
               className="text-base font-light italic text-gray-500"
               defaultValue="Project 1"
+              onChange={(e) => setProjectName2(e.target.value)}
             />
           </div>
-          <div className="ml-6 flex flex-row space-y-1">
+          <div className="ml-6 flex flex-col space-y-1">
             <div className="mr-6">
               <Label htmlFor="content-upload" className="text-base">
                 Upload Content Image
@@ -82,11 +116,12 @@ export const StyleTransferCard = (props: Props) => {
                 onChange={handleContentImageUpload}
               />
               {selectedContentImage && (
-                <div className="mt-2">
-                  <img
+                <div className="relative mt-2 h-64  w-64">
+                  <Image
+                    fill={true}
                     src={selectedContentImage}
                     alt="Selected Content"
-                    className="h-64 w-64 object-cover"
+                    className="object-cover"
                   />
                 </div>
               )}
@@ -103,55 +138,48 @@ export const StyleTransferCard = (props: Props) => {
                 onChange={handleStyleImageUpload}
               />
               {selectedStyleImage && (
-                <div className="mt-2">
-                  <img
+                <div className="relative mt-2 h-64  w-64">
+                  <Image
+                    fill={true}
                     src={selectedStyleImage}
                     alt="Selected Style"
-                    className="h-64 w-64 object-cover"
+                    className="object-cover"
                   />
                 </div>
               )}
             </div>
           </div>
           <CardFooter className="">
-            <Button className="mt-4 text-base">Transfer Style</Button>
             {/* Generate Image */}
-            {/* <Button
-            className="mt-4 text-base"
-            onClick={handleGenerateImage}
-            disabled={generateImage.isPending}
-          >
-            {generateImage.isPending ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : null}
-            {generateImage.isPending
-              ? "Transfering..."
-              : "Transfer Style"}
-          </Button> */}
+            <Button
+              className="mt-4 text-base"
+              onClick={handleCreateStyleTransfer}
+              disabled={transferStyle.isPending}
+            >
+              {transferStyle.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : null}
+              {transferStyle.isPending ? "Transferring..." : "Transfer Style"}
+            </Button>
           </CardFooter>
         </div>
         {/* Right Column */}
-        <div className="col-span-1 flex flex-col items-center justify-center space-y-5">
-          <div className="mt-7 flex h-64 w-64 items-center justify-center rounded-lg border-2 border-dashed border-gray-400 bg-gray-100">
-            {/* <span className="text-lg font-bold text-gray-300">Generated Image</span> */}
-            {/* {generateImage.isPending ? (
-            <div className="flex flex-col items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-              <span className="mt-2 text-lg font-bold text-gray-400">
-                Loading Image...
+        <div className="col-span-2 flex flex-col items-center justify-center space-y-5">
+          <div className="relative mt-7 flex h-64 w-64 items-center justify-center rounded-lg border-2 border-dashed border-gray-400 bg-gray-100">
+            {transferStyle.isPending ? (
+              <div className="flex flex-col items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                <span className="mt-2 text-lg font-bold text-gray-400">
+                  Loading Image...
+                </span>
+              </div>
+            ) : createdImage ? (
+              <Image fill={true} src={createdImage} alt="Generated Variation" />
+            ) : (
+              <span className="text-lg font-bold text-gray-400">
+                Generated Style Transfer
               </span>
-            </div>
-          ) : generatedImage ? (
-            <img
-              className="h-full w-full object-cover rounded-lg"
-              src={`data:image/jpeg;base64,${generatedImage}`}
-              alt="Generated Image"
-            />
-          ) : (
-            <span className="text-lg font-bold text-gray-400">
-              Generated Image
-            </span>
-          )} */}
+            )}
           </div>
           {/* <div className="flex justify-end w-full mt-5 mr-6"> */}
           <div className="mt-5 flex w-full justify-center">

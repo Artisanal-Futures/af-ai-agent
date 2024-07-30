@@ -7,6 +7,13 @@ export const generateImageSchema = z.object({
   user_id: z.string(),
 });
 
+export const styleTransferSchema = z.object({
+  project_title: z.string(),
+  content_image: z.string(),
+  style_image: z.string(),
+  user_id: z.string(),
+});
+
 export const regenerateImageSchema = z.object({
   project_title: z.string(),
   prompt: z.string(),
@@ -32,6 +39,10 @@ export const listPromptsSchema = z.object({
   level_of_satisfaction: z.string(),
   direct_use_in_fabrication: z.boolean().default(false),
   image: z.string(),
+});
+
+export const listGenerationsSchema = z.object({
+  user_id: z.string(),
 });
 
 export const pastGenerationSchema = z.object({

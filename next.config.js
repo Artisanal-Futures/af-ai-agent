@@ -7,7 +7,7 @@ await import("./src/env.js");
 /** @type {import("next").NextConfig} */
 const config = {
   images: {
-    domains: ["35.1.114.178"],
+    domains: ["35.1.114.178", "0.0.0.0"],
   },
 };
 

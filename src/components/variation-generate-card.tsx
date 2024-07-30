@@ -16,10 +16,12 @@ import {
 } from "~/components/ui/card";
 
 import Image from "next/image";
+import { CiImport } from "react-icons/ci";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { BASE_URL, DEMO_IMAGE_PATH } from "~/data/image";
-import { DownloadSurveyDialog } from "./dialogs/download-survey-dialog";
+import { env } from "~/env";
+import { downloadImage } from "~/lib/download";
 
 const defaultImagePath =
   "/img/stable-diffusion-xl--f7d3df13d07a4c4abe50690e4a994336.png";
@@ -39,7 +41,9 @@ export const VariationGenerateCard = (props: Props) => {
   const createImageVariation = api.agent.createImageVariation.useMutation({
     onSuccess: (varData) => {
       console.log("Image variation created successfully");
-      setGeneratedVariation(`${BASE_URL}${varData.output_image_url}`);
+      setGeneratedVariation(
+        `${env.NEXT_PUBLIC_BACKEND_URL}${varData.output_image_url}`,
+      );
     },
     onError: (error) => {
       console.error("Error creating image variation:", error);
@@ -58,7 +62,7 @@ export const VariationGenerateCard = (props: Props) => {
   const handleCreateImageVariation = async () => {
     const base64Image = await convertBlobToBase64(image);
 
-    createImageVariation.mutate({
+    await createImageVariation.mutateAsync({
       guidance_prompt: guidancePrompt,
       project_title: projectName2,
       user_id: props?.userId ?? "",
@@ -159,9 +163,19 @@ export const VariationGenerateCard = (props: Props) => {
               </span>
             )}
           </div>
-          <div className="flex w-full justify-center">
-            <DownloadSurveyDialog imageUrl={generatedVariation} />
-          </div>
+          {generatedVariation && (
+            <div className="flex w-full justify-center">
+              {/* <DownloadSurveyDialog imageUrl={generatedVariation} /> */}
+
+              <Button
+                className="#ffffff-text-thin flex space-x-2"
+                onClick={() => void downloadImage(generatedVariation)}
+              >
+                <span>Download</span>
+                <CiImport className="text-xl" />
+              </Button>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
