@@ -1,19 +1,16 @@
 import * as z from "zod";
 
-
-
 export const generateImageSchema = z.object({
   project_title: z.string(),
   prompt: z.string(),
-  user_id: z.string(),
-  // user_id: z.number(),
+  // user_uname: z.string(),
+  user_id: z.number(),
 });
 
 export const regenerateImageSchema = z.object({
   project_title: z.string(),
   prompt: z.string(),
-  // user_id: z.number(),
-  user_id: z.string(),
+  user_id: z.number(),
   guidance_scale: z.number(),
   negative_prompt: z.string(),
 });
@@ -26,10 +23,9 @@ export const createSurveySchema = z.object({
 
 export const createImageVariationSchema = z.object({
   guidance_prompt: z.string(),
-  // user_id: z.number(),
-  user_id: z.string(),
+  user_id: z.number(),
   project_title: z.string(),
-  input_image: z.string(),
+  image: z.string(),
 });
 
 export const listPromptsSchema = z.object({
@@ -38,10 +34,13 @@ export const listPromptsSchema = z.object({
   image: z.string(),
 });
 
+export const listGenerationsSchema = z.object({
+  user_id: z.string(),
+});
+
 export const pastGenerationSchema = z.object({
   id: z.number(),
-  // user_id: z.number(),
-  user_id: z.string(),
+  user_id: z.number(),
   project_title: z.string(),
   prompt: z.string(),
   image_url: z.string(),
@@ -65,5 +64,69 @@ export type PastGenerations = z.infer<typeof pastGenerationsSchema>;
 export type PastVariations = z.infer<typeof pastVariationSchema>;
 
 
+export type GenerateImageResponse = {
+  id: string;
+  user_id: number;
+  project_title: string;
+  prompt: string;
+  image_url: string;
+  generation_time: number;
+  generation_date: string;
+  user: unknown;
+};
 
+export type VariationResponse = {
+  id: string;
+  user_id: number;
+  project_title: string;
+  prompt: string;
+  negative_prompt: string;
+  output_image_url: string;
+  guidance_scale: number;
+  generation_time: number;
+  generation_date: string;
+};
 
+export type RegenerationResponse = {
+  id: string;
+  user_id: number;
+  project_title: string;
+  prompt: string;
+  negative_prompt: string;
+  output_image_url: string;
+  guidance_scale: number;
+  generation_time: number;
+  generation_date: string;
+};
+
+export type Generation = {
+  id: string;
+  user_id: number;
+  prompt: string;
+  project_title: string;
+  image_url: string;
+  generation_time: number;
+  generation_date: string;
+};
+
+export type Variation = {
+  id: number;
+  user_id: string;
+  project_title: string;
+  guidance_prompt: string;
+  input_image_url: string;
+  output_image_url: string;
+  generation_time: number;
+  generation_date: string;
+};
+
+export type StyleTransfer = {
+  id: string;
+  user_id: number;
+  project_title: string;
+  content_image: string;
+  style_image: string;
+  output_image_url: string;
+  generation_time: number;
+  generation_date: string;
+};
