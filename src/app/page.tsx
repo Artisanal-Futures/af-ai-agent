@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 
 import { ImageGenerateCard } from "~/components/cards/image-generate-card";
 
-import { useLocalStorage } from "@uidotdev/usehooks";
+// import { useLocalStorage } from "@uidotdev/usehooks";
 import { StyleTransferCard } from "~/components/cards/style-transfer-card";
 
 import {
@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 
 import { Code } from "lucide-react";
 
+import { useState } from "react";
 import { ImageHistoryDialog } from "~/components/dialogs/image-history-dialog";
 import { PastPromptsDialog } from "~/components/dialogs/past-prompts-dialog";
 import { StyleHistoryDialog } from "~/components/dialogs/style-history-dialog";
@@ -28,7 +29,7 @@ import { SignInButton } from "./(auth)/_components/sign-in-button";
 export default function Home() {
   const { data: session } = useSession();
 
-  const [demo, setDemo] = useLocalStorage<boolean>("demo", false);
+  const [demo, setDemo] = useState<boolean>(false);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#ffffff] to-[#e5e7eb] text-black">
