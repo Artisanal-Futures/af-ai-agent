@@ -23,7 +23,6 @@ import { DEMO_IMAGE_PATH } from "~/data/image";
 import { env } from "~/env";
 import { convertBlobToBase64 } from "~/lib/convert";
 
-import { useLocalStorage } from "@uidotdev/usehooks";
 import { handleImageUpload } from "~/lib/file";
 import { DownloadButton } from "../download-button";
 import { ImagePreview } from "../image-preview";
