@@ -149,7 +149,6 @@ export const VariationGenerateCard = (props: Props) => {
           {generatedVariation && (
             <div className="flex w-full justify-center">
               {/* <DownloadSurveyDialog imageUrl={generatedVariation} /> */}
-
               <DownloadButton imageUrl={generatedVariation} />
             </div>
           )}

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { SessionDropDownMenu } from "~/app/(auth)/_components/session-dropdown-menu";
 import { SignInButton } from "~/app/(auth)/_components/sign-in-button";
 import { Button } from "~/components/ui/button";
+import { ImagePreview } from "../image-preview";
 
 import {
   Dialog,
@@ -60,18 +61,26 @@ export function PastPromptsDialog(props: {
               <ScrollArea className="mt-4 h-full max-h-96 w-full ">
                 <>
                   {fetchPastGenerations?.data &&
-                  fetchPastGenerations?.data?.length > 0 ? (
+                    fetchPastGenerations?.data?.length > 0 ? (
                     <ul>
                       {fetchPastGenerations?.data?.map((generation, index) => (
                         <li key={index} className="mb-4">
                           <div className="flex flex-col items-start md:flex-row md:items-center">
                             <div className="relative mb-4 mr-4 aspect-square h-32 w-32  object-fill md:mb-0">
-                              <Image
-                                src={`${env.NEXT_PUBLIC_BACKEND_URL}${generation.image_url}`}
-                                alt={generation.project_title}
-                                className="h-full w-full"
-                                fill={true}
-                              />
+                              {generation.image_url ? (
+                                <Image
+                                  src={`${env.NEXT_PUBLIC_BACKEND_URL}${generation.image_url}`}
+                                  alt={generation.project_title}
+                                  className="h-full w-full"
+                                  fill={true}
+                                />
+                              ) : (
+                                <ImagePreview
+                                  isPending={false}
+                                  imageUrl=""
+                                  title={generation.project_title || "Generation"}
+                                />
+                              )}
                             </div>
                             <div>
                               <h3 className="text-lg font-semibold">
