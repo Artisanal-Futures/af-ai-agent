@@ -89,8 +89,8 @@ export function PastPromptsDialog(props: {
                                 ).toLocaleString()}
                               </p>
                               {fetchPastGenerations && (
-                                <div className="flex w-full justify-right mt-2 mb-2 gap-4">
-                                  <DownloadButton imageUrl={"generation.image_url"} />
+                                <div className="text-sm flex w-full justify-right mt-2 mb-2 gap-4">
+                                  <DownloadButton imageUrl={generation.image_url} />
                                   <RegenerateImageDialog
                                     userId={props.session?.user.id ?? ""}
                                     imageUrl={generation.image_url}
