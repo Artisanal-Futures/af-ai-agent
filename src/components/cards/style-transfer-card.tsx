@@ -1,4 +1,5 @@
 import { Loader2 } from "lucide-react";
+import { useEffect } from "react";
 
 import { useState } from "react";
 
@@ -71,6 +72,22 @@ export const StyleTransferCard = (props: Props) => {
       demo: props?.demo,
     });
   };
+
+  //disable clicking while function running
+  useEffect(() => {
+    const tabsElement = document.getElementById("tabs-list");
+    const tabs = document.getElementById("tabs");
+    if (tabsElement && tabs) {
+      if (transferStyle.isPending) {
+        tabsElement.style.pointerEvents = "none";
+        tabs.style.cursor = "not-allowed";
+      }
+      else {
+        tabsElement.style.pointerEvents = "auto";
+        tabs.style.cursor = "default";
+      }
+    }
+  }, [transferStyle.isPending]);
 
   return (
     <Card>
