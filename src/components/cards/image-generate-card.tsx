@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useState } from "react";
 
 import { Loader2 } from "lucide-react";
@@ -26,14 +27,13 @@ import { ImagePreview } from "../image-preview";
 type Props = {
   userId?: string | null | undefined;
   demo?: boolean;
+  initialPrompt?: string;
 };
 
 export const ImageGenerateCard = (props: Props) => {
   const [generatedImage, setGeneratedImage] = useState<string>("");
   const [projectName, setProjectName] = useState("Jacket Design Ideas");
-  const [prompt, setPrompt] = useState(
-    "An image of a denim jacket with floral embroidery",
-  );
+  const [prompt, setPrompt] = useState<string>(props.initialPrompt ?? "An image of a denim jacket with floral embroidery");
 
   const generateImage = api.agent.generateImage.useMutation({
     onSuccess: (imageData) => {
@@ -54,6 +54,25 @@ export const ImageGenerateCard = (props: Props) => {
       demo: props?.demo,
     });
   };
+
+  //disable clicking while function running
+  useEffect(() => {
+    const tabsElement = document.getElementById("tabs-list");
+    const tabs = document.getElementById("tabs");
+    if (tabsElement && tabs) {
+      if (generateImage.isPending) {
+        tabsElement.style.pointerEvents = "none";
+        tabs.style.cursor = "not-allowed";
+      }
+      else {
+        tabsElement.style.pointerEvents = "auto";
+        tabs.style.cursor = "default";
+      }
+    }
+  }, [generateImage.isPending]);
+
+
+
 
   return (
     <Card>

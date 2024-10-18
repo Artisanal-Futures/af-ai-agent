@@ -28,8 +28,8 @@ import { SignInButton } from "./(auth)/_components/sign-in-button";
 
 export default function Home() {
   const { data: session } = useSession();
-
   const [demo, setDemo] = useState<boolean>(false);
+
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#ffffff] to-[#e5e7eb] text-black">
@@ -95,10 +95,10 @@ export default function Home() {
         Artisanal&apos;s AI Agent
       </h1>
       <div className="container flex h-[calc(100%-5rem)] flex-col items-center justify-center gap-12 px-4 py-12">
-        <Tabs defaultValue="generate" className="h-[auto] w-[90%]">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs id="tabs" defaultValue="generate" className="h-[auto] w-[90%]" >
+          <TabsList id="tabs-list" className="grid w-full grid-cols-3" >
             <TabsTrigger value="generate">Generate Image</TabsTrigger>
-            <TabsTrigger value="variation">Create Variations</TabsTrigger>
+            <TabsTrigger value="variation" >Create Variations</TabsTrigger>
             <TabsTrigger value="style_transfer">Style Transfer</TabsTrigger>
           </TabsList>
 
@@ -110,7 +110,6 @@ export default function Home() {
           <TabsContent value="variation">
             <VariationGenerateCard userId={session?.user?.id} demo={demo} />
           </TabsContent>
-
           {/*Style Transfer Tab */}
           <TabsContent value="style_transfer">
             <StyleTransferCard userId={session?.user?.id} demo={demo} />
