@@ -90,8 +90,8 @@ export function RegenerateImageDialog({
           <span>Regenerate Image</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-5xl">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-6xl ">
+        {/* <DialogHeader>
           <DialogTitle className="text-2xl">Regenerate Image</DialogTitle>
           <DialogDescription className="text-lg">
             Regenerate your image by providing a new negative prompt <br />
@@ -99,11 +99,18 @@ export function RegenerateImageDialog({
             the image output based on different constraints and preferences.
             <br />
           </DialogDescription>
-        </DialogHeader>
+        </DialogHeader> */}
         <div className="grid grid-cols-2 gap-4">
           {/* Left Column */}
           <div className="col-span-1 space-y-2">
             <div className="mb-4 ml-6 space-y-1">
+              <DialogTitle className="text-2xl">Regenerate Image</DialogTitle>
+              <DialogDescription className="text-lg">
+                Regenerate your image by providing a new negative prompt <br />
+                and adjusting the guidance scale. This allows you to refine <br />
+                the image output based on different constraints and preferences.
+                <br />
+              </DialogDescription>
               <Label className="text-base">
                 Project Name :
                 <span className="ml-2 text-base font-light italic text-gray-500">
@@ -177,7 +184,7 @@ export function RegenerateImageDialog({
                 </HoverCardContent>
               </HoverCard>
             </div>
-            <div className="mb-4 ml-6 flex items-center space-x-1">
+            <div className="mb-6 ml-6 flex items-center space-x-1 mb-6">
               <Slider
                 defaultValue={[guidanceScale]}
                 max={10}
@@ -185,10 +192,22 @@ export function RegenerateImageDialog({
                 onValueChange={handleSliderChange}
                 className="mt-2"
               />
+
             </div>
+            <Button
+              className="mb-4 ml-6 flex items-center space-x-1 mt-6"
+              onClick={handleRegenerateImage}
+              disabled={regenerateImage.isPending}
+            >
+              {regenerateImage.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : null}
+              {regenerateImage.isPending ? "Regenerating..." : "Regenerate Image"}
+            </Button>
+
           </div>
           {/* Right Column */}
-          <div className="col-span-1 flex flex-col items-center justify-center space-y-5">
+          <div className="col-span-1 flex flex-col items-center space-y-2">
             {/* previous image */}
             <Label className="text-base">Previous Image</Label>
             <div className="relative mt-7 flex h-64 w-64 items-center justify-center rounded-lg border-2 border-dashed border-gray-400 bg-gray-100">
@@ -236,7 +255,7 @@ export function RegenerateImageDialog({
             </div>
           </div>
         </div>
-        <DialogFooter>
+        {/* <DialogFooter>
           <Button
             className="mr-auto mt-4 text-base "
             onClick={handleRegenerateImage}
@@ -247,7 +266,7 @@ export function RegenerateImageDialog({
             ) : null}
             {regenerateImage.isPending ? "Regenerating..." : "Regenerate Image"}
           </Button>
-        </DialogFooter>
+        </DialogFooter> */}
       </DialogContent>
     </Dialog>
   );

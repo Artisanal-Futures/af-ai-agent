@@ -1,4 +1,5 @@
 import { Loader2 } from "lucide-react";
+import { useEffect } from "react";
 
 import { useState } from "react";
 
@@ -66,6 +67,22 @@ export const VariationGenerateCard = (props: Props) => {
       demo: props?.demo,
     });
   };
+
+  //disable clicking while function running
+  useEffect(() => {
+    const tabsElement = document.getElementById("tabs-list");
+    const tabs = document.getElementById("tabs");
+    if (tabsElement && tabs) {
+      if (createImageVariation.isPending) {
+        tabsElement.style.pointerEvents = "none";
+        tabs.style.cursor = "not-allowed";
+      }
+      else {
+        tabsElement.style.pointerEvents = "auto";
+        tabs.style.cursor = "default";
+      }
+    }
+  }, [createImageVariation.isPending]);
 
   return (
     <Card>
