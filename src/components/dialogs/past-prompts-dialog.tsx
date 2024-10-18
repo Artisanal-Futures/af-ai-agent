@@ -4,6 +4,10 @@ import { useState } from "react";
 import { SessionDropDownMenu } from "~/app/(auth)/_components/session-dropdown-menu";
 import { SignInButton } from "~/app/(auth)/_components/sign-in-button";
 import { Button } from "~/components/ui/button";
+import { DownloadButton } from "../download-button";
+import { RegenerateImageDialog } from "../dialogs/regenerate-image-dialog";
+
+
 
 import {
   Dialog,
@@ -60,7 +64,7 @@ export function PastPromptsDialog(props: {
               <ScrollArea className="mt-4 h-full max-h-96 w-full ">
                 <>
                   {fetchPastGenerations?.data &&
-                  fetchPastGenerations?.data?.length > 0 ? (
+                    fetchPastGenerations?.data?.length > 0 ? (
                     <ul>
                       {fetchPastGenerations?.data?.map((generation, index) => (
                         <li key={index} className="mb-4">
@@ -84,6 +88,19 @@ export function PastPromptsDialog(props: {
                                   generation.generation_date,
                                 ).toLocaleString()}
                               </p>
+                              {fetchPastGenerations && (
+                                <div className="text-sm flex w-full justify-right mt-2 mb-2 gap-4">
+                                  <DownloadButton imageUrl={generation.image_url} />
+                                  <RegenerateImageDialog
+                                    userId={props.session?.user.id ?? ""}
+                                    imageUrl={generation.image_url}
+                                    projectName={generation.project_title}
+                                    prompt={generation.prompt}
+                                    demo={props?.demo}
+                                  />
+                                </div>
+                              )}
+
                             </div>
                           </div>
                         </li>
@@ -91,7 +108,8 @@ export function PastPromptsDialog(props: {
                     </ul>
                   ) : (
                     <div>No past generations available.</div>
-                  )}
+                  )
+                  }
                 </>
               </ScrollArea>
             </>

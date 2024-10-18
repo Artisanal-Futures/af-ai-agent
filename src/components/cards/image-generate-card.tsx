@@ -27,15 +27,13 @@ import { ImagePreview } from "../image-preview";
 type Props = {
   userId?: string | null | undefined;
   demo?: boolean;
-
+  initialPrompt?: string;
 };
 
 export const ImageGenerateCard = (props: Props) => {
   const [generatedImage, setGeneratedImage] = useState<string>("");
   const [projectName, setProjectName] = useState("Jacket Design Ideas");
-  const [prompt, setPrompt] = useState(
-    "An image of a denim jacket with floral embroidery",
-  );
+  const [prompt, setPrompt] = useState<string>(props.initialPrompt ?? "An image of a denim jacket with floral embroidery");
 
   const generateImage = api.agent.generateImage.useMutation({
     onSuccess: (imageData) => {

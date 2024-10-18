@@ -28,8 +28,8 @@ import { SignInButton } from "./(auth)/_components/sign-in-button";
 
 export default function Home() {
   const { data: session } = useSession();
-
   const [demo, setDemo] = useState<boolean>(false);
+
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#ffffff] to-[#e5e7eb] text-black">
