@@ -167,6 +167,7 @@ export const VariationGenerateCard = (props: Props) => {
             <div className="flex w-full justify-center">
               {/* <DownloadSurveyDialog imageUrl={generatedVariation} /> */}
               <DownloadButton imageUrl={generatedVariation} />
+              
             </div>
           )}
         </div>

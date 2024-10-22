@@ -97,7 +97,7 @@ export default function Home() {
       </h1>
       <div className="container flex h-[calc(100%-5rem)] flex-col items-center justify-center gap-12 px-4 py-12">
         <Tabs id="tabs" defaultValue="generate" className="h-[auto] w-[90%]" >
-          <TabsList id="tabs-list" className="grid w-full grid-cols-3" >
+          <TabsList id="tabs-list" className="grid w-full grid-cols-2" >
             <TabsTrigger value="generate">Generate Image</TabsTrigger>
             {/* <TabsTrigger value="variation" >Create Variations</TabsTrigger> */}
             <TabsTrigger value="style_transfer">Style Transfer</TabsTrigger>

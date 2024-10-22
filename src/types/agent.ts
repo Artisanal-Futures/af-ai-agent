@@ -56,10 +56,18 @@ export const pastGenerationSchema = z.object({
   user: z.any().nullable(),
 });
 
+export const recordLikeSchema = z.object({
+  user_id: z.string(),
+  generated_image_id: z.string(),
+  like: z.number().min(0).max(1),
+});
+
 export type GenerateImageInput = z.infer<typeof generateImageSchema>;
 export type CreateImageInput = z.infer<typeof createImageVariationSchema>;
 export const pastGenerationsSchema = z.array(pastGenerationSchema);
 export type PastGenerations = z.infer<typeof pastGenerationsSchema>;
+
+
 
 export type GenerateImageResponse = {
   id: string;
@@ -71,6 +79,15 @@ export type GenerateImageResponse = {
   generation_date: string;
   user: unknown;
 };
+
+export const likeResponseSchema = z.object({
+  id: z.number(),
+  user_id: z.string(),
+  generated_image_id: z.string(),
+  like: z.number(),
+  liked_at: z.string(),
+  generated_image: z.string().nullable(),
+});
 
 export type VariationResponse = {
   id: string;

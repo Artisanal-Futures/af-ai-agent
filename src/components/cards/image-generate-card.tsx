@@ -21,6 +21,7 @@ import { DEMO_IMAGE_PATH } from "~/data/image";
 
 import { env } from "~/env";
 import { RegenerateImageDialog } from "../dialogs/regenerate-image-dialog";
+
 import { DownloadButton } from "../download-button";
 import { ImagePreview } from "../image-preview";
 
@@ -141,6 +142,13 @@ export const ImageGenerateCard = (props: Props) => {
                 prompt={prompt}
                 demo={props?.demo}
               />
+              {/* <LikesDialog
+                userId={props.userId ?? null}
+                imageUrl={generatedImage}
+                projectName={projectName}
+                prompt={prompt}
+                demo={props?.demo}
+              /> */}
             </div>
           )}
         </div>

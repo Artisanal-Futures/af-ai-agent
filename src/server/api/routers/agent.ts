@@ -16,6 +16,8 @@ import {
   styleTransferSchema,
   type Variation,
   type VariationResponse,
+  recordLikeSchema,
+  likeResponseSchema,
 } from "~/types/agent";
 
 export const agentRouter = createTRPCRouter({
@@ -149,6 +151,43 @@ export const agentRouter = createTRPCRouter({
 
         const imageData = response.data as StyleTransfer;
         return imageData;
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: `Error: Status: ${error.response?.status ?? "Unknown"}`,
+          });
+        }
+        throw error;
+      }
+    }),
+
+  recordLikes: publicProcedure
+    .input(recordLikeSchema.extend({ demo: z.boolean().optional() })) // Extending to include optional demo mode
+    .mutation(async ({ input }) => {
+      const baseUrl = `${env.BACKEND_URL}sdm/api/v2/create/like`;
+      const { demo, ...recordLikeInput } = input; // Destructure input for demo
+
+      // If demo mode is active, simulate an error for testing
+      if (demo) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Error: Status: DEBUG`,
+        });
+      }
+
+      try {
+        // Send the POST request to record the like/dislike
+        const response = await axios.post(baseUrl, recordLikeInput, {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          timeout: 900000, // 15 minute timeout
+        });
+
+        // Process the response from the backend
+        const likeResponse = likeResponseSchema.parse(response.data);
+        return likeResponse;
       } catch (error) {
         if (axios.isAxiosError(error)) {
           throw new TRPCError({

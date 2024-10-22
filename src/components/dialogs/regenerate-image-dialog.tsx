@@ -1,5 +1,6 @@
 import { CiImport } from "react-icons/ci";
-
+import { FiThumbsDown } from "react-icons/fi";
+import { FiThumbsUp } from "react-icons/fi";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 
@@ -72,6 +73,15 @@ export function RegenerateImageDialog({
     },
   });
 
+  const recordLike = api.agent.recordLikes.useMutation({
+    onSuccess: () => {
+      console.log("Like recorded successfully");
+    },
+    onError: (error) => {
+      console.error("Error recording like:", error);
+    },
+  });
+
   const handleRegenerateImage = async () => {
     regenerateImage.mutate({
       project_title: projectName,
@@ -83,23 +93,67 @@ export function RegenerateImageDialog({
     });
   };
 
+  const handleThumbsDownClick = () => {
+    console.log("Disliked image, regenerate");
+    recordLike.mutate({
+      generated_image_id: projectName, //replace with image id
+      user_id: userId ?? "",
+      like: 0,
+    });
+    setShowDownloadCard(true);
+  };
+
+  const handleThumbsUpClick = () => {
+    console.log("Liked image");
+    recordLike.mutate({
+      generated_image_id: projectName, //replace with image id
+      user_id: userId ?? "",
+      like: 1,
+    });
+  };
+
+
+
   return (
     <Dialog open={showDownloadCard} onOpenChange={setShowDownloadCard}>
-      <DialogTrigger asChild>
-        <Button className="#ffffff-text-thin flex space-x-2">
+      {/* <Button className="#ffffff-text-thin flex space-x-2">
           <span>Regenerate Image</span>
-        </Button>
-      </DialogTrigger>
+        </Button> */}
+      {/* <DialogTrigger asChild>
+        <div className="flex space-x-2">
+          <FiThumbsDown
+            className="cursor-pointer text-gray-700"
+            aria-label="Regenerate Image"
+          />
+          <FiThumbsUp
+            className="cursor-pointer text-gray-700"
+            aria-label="Like Image"
+          />
+        </div>
+      </DialogTrigger> */}
+
+      <div className="flex space-x-2">
+        <FiThumbsUp
+          className="h-9 w-9 cursor-pointer text-gray-700 transition-colors duration-200 hover:text-green-500 hover:bg-green-100 rounded-md p-2"
+          aria-label="Like Image"
+          onClick={handleThumbsUpClick}
+        />
+        <HoverCard>
+          <HoverCardTrigger>
+            <FiThumbsDown
+              className="h-9 w-9 cursor-pointer text-gray-700 transition-colors duration-200 hover:text-red-500 hover:bg-red-100 rounded-md p-2"
+              aria-label="Dislike Image"
+              onClick={handleThumbsDownClick}
+            />
+          </HoverCardTrigger>
+          <HoverCardContent side="top" align="center">
+            <p className="text-center text-sm">
+              Dislike the generated image? Click here to regenerate it based on your preferences.
+            </p>
+          </HoverCardContent>
+        </HoverCard>
+      </div>
       <DialogContent className="sm:max-w-6xl ">
-        {/* <DialogHeader>
-          <DialogTitle className="text-2xl">Regenerate Image</DialogTitle>
-          <DialogDescription className="text-lg">
-            Regenerate your image by providing a new negative prompt <br />
-            and adjusting the guidance scale. This allows you to refine <br />
-            the image output based on different constraints and preferences.
-            <br />
-          </DialogDescription>
-        </DialogHeader> */}
         <div className="grid grid-cols-2 gap-4">
           {/* Left Column */}
           <div className="col-span-1 space-y-2">
