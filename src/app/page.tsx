@@ -92,13 +92,14 @@ export default function Home() {
         </div>
       </div>
       <h1 className="mt-16 text-5xl font-bold md:mt-16">
-        Artisanal&apos;s AI Agent
+        {/* Artisanal&apos;s AI Agent */}
+        Upcycle Scraps
       </h1>
       <div className="container flex h-[calc(100%-5rem)] flex-col items-center justify-center gap-12 px-4 py-12">
         <Tabs id="tabs" defaultValue="generate" className="h-[auto] w-[90%]" >
           <TabsList id="tabs-list" className="grid w-full grid-cols-3" >
             <TabsTrigger value="generate">Generate Image</TabsTrigger>
-            <TabsTrigger value="variation" >Create Variations</TabsTrigger>
+            {/* <TabsTrigger value="variation" >Create Variations</TabsTrigger> */}
             <TabsTrigger value="style_transfer">Style Transfer</TabsTrigger>
           </TabsList>
 
@@ -106,10 +107,12 @@ export default function Home() {
           <TabsContent value="generate">
             <ImageGenerateCard userId={session?.user?.id} demo={demo} />
           </TabsContent>
-          {/* Create Variation Tab*/}
-          <TabsContent value="variation">
+
+          {/* Removed Create Variation Tab*/}
+          {/* <TabsContent value="variation">
             <VariationGenerateCard userId={session?.user?.id} demo={demo} />
-          </TabsContent>
+          </TabsContent> */}
+
           {/*Style Transfer Tab */}
           <TabsContent value="style_transfer">
             <StyleTransferCard userId={session?.user?.id} demo={demo} />
